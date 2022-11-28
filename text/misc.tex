@@ -1,0 +1,218 @@
+\section{杂项}
+
+\subsection{STL}
+
+\subsubsection{bitset}
+
+\lstinputlisting{./code/misc/bitset.cpp}
+
+\subsubsection{配对堆（dijkstra）}
+
+\lstinputlisting{./code/misc/pb_ds.cpp}
+
+\newpage
+
+\subsection{套路}
+
+\subsubsection{等差数列乘积转阶乘}
+
+$$
+a(a+d)(a+2d)\cdots(a+nd)={a\over d}({a\over d}+1)({a\over d}+2)\cdots({a\over d}+n)\cdot d^{n+1}
+$$
+
+质模数小时可以转为阶乘。
+
+\subsubsection{最小二乘法}
+
+拟合后直线为 $y=kx+b$ ：$k = \displaystyle\frac{n\sum_{i=1}^n x_iy_i - \big(\sum_{i=1}^n x_i \big)\big(\sum_{i=1}^n y_i\big)}{n\sum_{i=1}^n x_i^2 - \big(\sum_{i=1}^{n} x_i\big)^2}, b = \displaystyle\frac{\sum_{i=1}^{n} y_i - k\sum_{i=1}^n x_i}{n}$
+
+
+\subsubsection{小范围不重复数点}
+
+给 $n$ 组点 $(A,B,C)$ ，每个点覆盖 $\ge A,\ge B,\ge C$ 的部分，每组点覆盖的部分取并。
+
+求 $(i,j,k)$ 被几组覆盖。
+
+\lstinputlisting{./code/misc/countpoint.cpp}
+
+
+\newpage
+
+\subsubsection{gcd,and,or分块}
+
+如果对每个右端点 $i$ ，记录 $suf_j$ 表示 $[j,i]$ 的 $\gcd$ ，将 $suf_j$ 相邻的相同值合并，最多只有 $\log$ 块，因为 $\gcd$ 变化时至少整除 $2$ 。
+
+对于已经维护好的右端点 $i$ ，可以 $O(\log)$ 添加 $i+1$ 。
+
+由于 $\text{and},\text{or}$ 也只会变化 $\log$ 次，因此也可以如上述处理。
+
+\subsubsection{子集分块}
+
+动态维护 $f_s=\sum_{t\subseteq S}a_t$ ，需要支持 $a_x$ 修改操作（超集同理）。
+
+如果全集 $S$ 比较大，可以拆成两半，$t$ 是 $s$ 子集等价于两半都是 $s$ 子集。
+
+定义 $f_{a,b}=\sum_{i=a,j\subseteq b}a_{i\cup j}$ ，从 $O(S)$ 修改 $O(1)$ 查询变为 $O(\sqrt S)$ 修改查询。
+
+动态维护因子也可以这么处理，将 $n$ 拆为 $\prod_{k}p_k^{w_k}$ ，并分为 $\prod(w_i+1)$ 尽可能接近的两半，建出因子关系后同上述处理。
+
+
+\subsubsection{二进制分组}
+
+假设动态加入 $n$ 个可以合并的数据结构D，并且查询时不需要在合并后的数据结构中查询，可以采用二进制分组。
+
+每次加入一个D时，先在右端加入一个大小为 $1$ 的组，然后查询 $Tail-1$ 和 $Tail$ 组大小是否一致，如果一致则暴力合并。
+
+每个D只会被合并 $\log_2n$ 次。
+
+\subsubsection{启发式分裂}
+
+如果一个块 $[L,R]$ 能按规则分为两个块 $[L,m],[m+1,R]$ 且支持继续拆分，则可以从两侧同时往内部枚举，一侧遇到合法位置即停止枚举，这样复杂度是 $O(n\log_2n)$ 的，因为可以看作启发式合并的逆过程，每个点只会拆分 $O(\log_2n)$ 次。
+
+
+\subsubsection{超级钢琴贪心模型}
+
+选 $k$ 个长度在 $[L,R]$ 范围内的子段，求 $k$ 个子段的和的最大值。
+
+类似选出前 $k$ 小的 $a_i+a_j$ ，定义 $Max(i,L,R)$ 表示 $i$ 作左端点，右端点在 $[L,R]$ 范围内的最大值，可以用ST表查询出 $Max(i,L,R)$ 中最优秀的右端点 $t$ ，然后将 $Max(i,L,R)$ 拆为 $Max(i,L,t-1),Max(i,t+1,R)$ ，用堆取 $k$ 次即可。
+
+
+\subsubsection{平方计数}
+
+求所有方案中 $\sum_{S} cnt(S,A)^2$ ，$cnt(S,A)$ 表示 $A$ 在方案 $S$ 中的出现次数。
+
+可以转化为在 $S$ 中可重复的选择两次 $A$ 的方案数。
+
+\subsubsection{循环矩阵乘法}
+
+\vspace{-0.5cm}
+
+$$
+A_{i,j}=A_{0,(j-i)\bmod n}
+$$
+$$
+(AB)_{0,k}=\sum_{i+j\equiv k\pmod n}A_{0,i}B_{0,j}
+$$
+
+将 $A_{i,j}$ 简记为 $A_i$ ，则 $AB$ 就是 $A$ 和 $B$ 的循环卷积。
+
+\newpage
+
+\subsubsection{树上解方程}
+
+\vspace{-0.5cm}
+
+$$
+f(x)={1\over d_x}\sum_{(x,y)\in E}f(y)+w_x
+$$
+
+可以设 $f(x)=f(fa_x)+a_x$ ，如果 $w_x=1$ ，则：
+$$
+f(x)=f(fa_x)+sum_x
+$$
+其中 $sum_x$ 为 $x$ 子树中节点度数的和，即 $2si_x-1$ 。
+
+\subsubsection{四连通解方程}
+
+在 $x\in[-R,R],y\in [-R,R]$ 的四连通网格中解方程：
+$$
+f_{x,y}=p_{x,y,0}f_{x-1,y}+p_{x,y,1}f_{x,y-1}+p_{x,y,2}f_{x+1,y}+p_{x,y,3}f_{x,y+1}+a_{x,y}
+$$
+将可用格子从左上角到右下角编号，则每行方程只涉及 $2R$ 距离内的变元，因此每次高斯消元不需要 $O(R^2)$ ，只需要 $O(R)$ 。
+
+\lstinputlisting{./code/misc/limitGaussian.cpp}
+
+
+\subsubsection{去绝对值}
+
+由于 $|x-y|=\max\{x-y,y-x\}$ ，如果要求最大值，则不合法的情况（负数）一定不会选。
+
+枚举 $|x-y|$ 的正负情况后即可分别求 $\max\{\sum x\},\max\{\sum y\}$ 。
+
+\newpage
+
+\subsubsection{随机赋权判奇偶性}
+
+利用随机赋权+异或，可以判整体奇偶性。
+
+例：有 $n\times m$ 矩阵，每一行都有一个区间 $[L_i,R_i]$ 被覆盖，问多少个 $[A,B]$ 满足任意一行 $[A,B]$ 被覆盖的次数都是奇数/偶数。
+
+给每行的 $[L_i,R_i]$ 随机一个权值，利用差分求出 $a_i$ 表示经过 $i$ 的线段的权值异或和，$d_i$ 表示 $L\le i$ 的权值异或和，记录 $sum_i$ 为 $a_i$ 的前缀异或和。
+
+均出现偶数次：$sum_B\ \text{xor}\ sum_{A-1}=0$ 。
+
+均出现奇数次：$sum_B\ \text{xor}\ sum_{A-1}=d_{B}\ \text{xor}\ d_{A}\ \text{xor}\ a_A$ ，即 $sum_B\ \text{xor}\ sum_{A}=d_{B}\ \text{xor}\ d_{A}$ 。
+
+
+\subsubsection{FFT字符串匹配}
+
+一般匹配：$\sum_{i=0}^{len-1}(A_i-B_i)^2=0$ 则匹配成功。
+
+通配符匹配：如果串 $s$ 第 $i$ 位是通配符，则令 $S_i=0$ ，$\sum_{i=0}^{len-1}(A_i-B_i)^2A_iB_i=0$ 则匹配成功。
+
+$K$ 次容错匹配：对于每个字符 $ch$ ，$S_i=[s_i=ch]$ ，$\sum_{i=0}^{len-1}A_iB_i$ 即 $ch$ 字符为 $A,B$ 提供的匹配数量。最后查询总匹配数量。
+
+以上三个式子均可以对每个位置展开为卷积形式，然后用FFT快速求解。
+
+\subsection{奇技淫巧}
+
+\subsubsection{读入输出优化}
+
+\lstinputlisting{./code/misc/readandwrite.cpp}
+
+\subsubsection{模数非素数无法求逆元}
+
+如果模数为非素数 $MOD$ ，但是整数运算最后要除以 $n$（且保证结果也是整数）。
+
+可以运算时将模数改为 $MOD\cdot n$ ，就可以除以 $n$ 了。
+
+\vspace{-0.3cm}
+
+\subsubsection{模拟退火}
+
+\vspace{-0.2cm}
+
+\lstinputlisting{./code/misc/simulatedannealing.cpp}
+
+\vspace{-0.4cm}
+
+\subsubsection{中位数最小转权值最小}
+
+$n$ 个元素，选出最少的个数满足条件 $A$ ，并且最少的前提下，权值中位数最小。
+
+二分中位数，小于等于中位数的权值给 $3n-1$ ，大于中位数的权值给 $3n+1$ ，这样权值和最小就等价于选取最少（因为这样少选一个一定比多选一个权值和小）。
+
+求出最小权值 $ans$ ，二分验证条件是 $3n-1$ 的个数大于等于 $3n+1$ 的个数。易知选取个数为 $cnt=\lfloor{ans+n\over 3n}\rfloor$ ，因此验证条件即 $ans\le 3n\cdot cnt$ 。
+
+\vspace{-0.3cm}
+
+\subsubsection{线性求逆元}
+
+求出 $s_i=\prod_{j=1}^{i}a_j,sv_n=(s_n)^{-1},sv_{i}=sv_{i+1}a_{i+1}$ 。
+
+则 $(a_i)^{-1}=s_{i-1}sv_i$ 。
+
+\vspace{-0.3cm}
+
+\subsubsection{线性快速幂}
+
+要求 $a^{n}$ ，令 $S=\lceil \sqrt n\rceil$ ，预处理 $a^{iS}$ 和 $a^{j}$ ，则 $a^n=a^{iS}\cdot a^j$ ，预处理复杂度 $O(\sqrt n)$ 。
+
+\vspace{-0.3cm}
+
+\subsubsection{vscode配置}
+
+快捷键：ctrl+shift+b 改为 ctrl+f9 。
+
+配置：Auto Closing Brackets 和 Auto Closing Delete 改为 always ，Insert Spaces 取消勾选。
+
+终端-配置默认生成任务，运行-添加配置。
+
+\vspace{-0.3cm}
+
+\subsubsection{Linux对拍}
+
+调用方法：sh check.sh
+
+\lstinputlisting{./code/misc/check.sh}
+

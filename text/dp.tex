@@ -1,0 +1,128 @@
+\section{动态规划}
+
+\subsection{背包回退}
+
+\lstinputlisting{./code/dp/bagback.cpp}
+
+\subsection{树形DP}
+
+\subsubsection{树形背包优化}
+
+\lstinputlisting{./code/dp/magictreebag.cpp}
+
+\subsubsection{路径有方向}
+
+求一条最优路径，但如果一条边行走方向不同，产生的权值不同。
+
+定义 $f_i$ 表示向上走到 $i$ 的状态，$g_i$ 表示 $i$ 向下走的状态。
+
+DFS时正着枚举儿子做一遍，倒着枚举儿子做一遍，即可考虑到两个儿子 $u\to v,v\to u$ 两种方向。
+
+\subsubsection{DFS序上DP}
+
+树形背包，每个节点有 $s_x$ 个体积 $w_x$ 价值 $p_x$ 的物品。
+
+但需要满足儿子选了至少一个的话，则父亲也必须至少选一个。
+
+定义 $f_{i,j}$ 表示DFS序 $[1,i]$ 体积为 $j$ 的最优解，这样转移就只有两种：
+
+1. $i$ 点选，那么转移到 $f[i+1][k]$ 。
+
+2. $i$ 点不选，那么子树也没有选，转移到 $f[out[i]+1][k]$ 。
+
+\lstinputlisting{./code/dp/dfsorderdp.cpp}
+
+\subsection{状压DP}
+
+\subsubsection{斯坦纳树}
+
+\textbf{一般问题}
+
+在 $n\times m$ 的网格上有 $k$ 个景点，选取每个网格都有代价，求最小代价使得景点之间全部连通。
+
+定义 $f_{i,j,s}$ 表示当 $i,j$ 与 $s$ 这些景点连通时的最优解，那么有两种方法转移：
+
+1. 通过子集转移：$f_{i,j,t}+f_{i,j,s-t}-cost_{i,j}\to f_{i,j,s}$ ，减去 $cost_{i,j}$ 是因为算重复了。
+
+2. 通过相邻点转移：$f_{x,y,s}+cost_{i,j}\to f_{i,j,s}$ 。
+
+第二种转移是最短路形式，用SPFA进行，每次先用第一种转移处理出 $f_{i,j,s}$ ，然后把 $f_{i,j,s}$ 加进队列，对每个 $s$ 都做一遍SPFA。
+
+\lstinputlisting{./code/dp/steinertree.cpp}
+
+\textbf{随机映射}
+
+$n\times m$ 网格，每个格点颜色为 $c_{i,j}$ ，权值 $cost_{i,j}$ 。选取一个最小权值连通块使得至少选了 $K$ 种颜色。
+
+若 $K$ 小，颜色集大，可以将颜色集随机映射到 $[1,K]$ 内，然后做斯坦纳树，这样单次正确概率为 $\frac{K!}{K^K}$ 。
+
+\subsubsection{DP套DP}
+
+给定一个状态 $S$ ，可用DP $f$ ，求其最优解为 $f(S)$ 。问多少个 $S$ 满足 $f(S)=F$ 。
+
+将 $f$ 的DP状态记录下来，可以得到一个DAG，外层DP储存在DAG的位置。
+
+第 $a$ 步，当状态 $A$ 添加元素时，即从 $f(A)\to f(B)$ 。
+
+将 $f(A)$ 的DP状态压缩为 $s_A$ ，令外层DP $g_{a,s_A}$ ，则 $g_{a,s_A}\to g_{a+1,s_B}$ 进行转移。
+
+\newpage
+
+\subsubsection{插头DP}
+
+记录轮廓线上的插头状态，处理当前格子时将左上角轮廓更新为右下角轮廓。
+
+\vspace{0.3cm}
+
+\textbf{哈密顿回路}
+
+任意条哈密顿回路铺满网格：记录 $0,1$ 表示是否有插头。
+
+一条哈密顿回路铺满网格：记录 $0,1,2$ 表示没有插头，左括号插头，右括号插头。
+
+\subsection{斜率优化}
+
+若DP在 $j$ 比 $k$ 优秀时满足以下式子（ $j<i,k<i,X_k<X_j$ ）：
+
+$$
+f_j+val(j)-[f_k+val(k)]\le A_i(X_j-X_k) \Rightarrow
+\frac{Y_j-Y_k}{X_j-X_k}\le A_i
+$$
+
+记 $K(a,b)=\frac{Y_b-Y_a}{X_b-X_a}(X_a<X_b)$ ，则 $K(k,j)\le A_i$ 说明 $j$ 比 $k$ 优秀，$K(k,j)>A_i$ 说明 $k$ 比 $j$ 优秀。
+
+推论：若 $K(k,j)\ge K(j,t)$ ，则 $j$ 对任何 $i$ 都必然不优秀。
+
+证明：若 $K(j,t)\le A_i$ ，则 $t$ 比 $j$ 优秀。若 $K(j,t)>A_i$ ，则 $K(k,j)>A_i$ ，$k$ 比 $j$ 优秀。
+
+因此有用的点必须满足 $K(que_{i-1},que_i)<K(que_i,que_{i+1})$ ，即 $que$ 构成一个下凸壳。
+
+\subsubsection{队列维护}
+
+若 $X_i,A_i$ 均递增，可以用队列维护凸壳。
+
+更新点 $i$ 时，判断队首，如果 $K(que_{head},que_{head+1})\le A_i$ 则 $que_{head}$ 失效（因为 $A_i$ 只会增大）。
+
+更新完成后 $que_{head}$ 即最优解。
+
+加入点 $i$ 时，判断队尾，如果 $K(que_{tail-1},que_{tail})\ge K(que_{tail},i)$ 则队尾失效。
+
+\subsubsection{cdq分治}
+
+若 $X_i,A_i$ 有非递增，可以用cdq分治。
+
+求出 $[L,mid]$ 的答案后，构造出左边的凸壳，然后在凸壳上二分斜率，更新 $[mid+1,R]$ 的答案。
+
+当然也可以平衡树动态维护凸壳。
+
+\lstinputlisting{./code/dp/cdqslopeoptimize.cpp}
+
+\subsection{决策单调性}
+
+若DP对于任意的 $i<j<k<t$ 且对于 $k$ 来说 $j$ 比 $i$ 优秀，都满足对于 $t$ 来说 $j$ 比 $i$ 优秀，则该DP满足决策单调性。
+
+令 $pos_i$ 表示转移到 $i$ 的最优位置，则 $pos$ 是单调不降的（因为取到 $pos_i$ 说明前面都没有 $pos_i$ 优秀，那么对于 $i$ 后面的肯定也是不优秀的）。
+
+维护队列，队列元素 $p_i,l_i,r_i$ 表示 $[l_i,r_i]$ 的 $pos$ 都为 $p_i$ ，每次考虑加入 $i$ 这个决策点，由于 $pos$ 单调，因此可以二分找到从哪个位置开始 $pos$ 变为 $i$ 。
+
+\lstinputlisting{./code/dp/decisionmonotonicity.cpp}

@@ -1,0 +1,83 @@
+\documentclass[UTF8]{article}
+\usepackage{listings}
+\usepackage{fontspec}
+\usepackage{ctex}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{abstract}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[colorlinks,linkcolor=black,citecolor=black]{hyperref}
+\geometry{a4paper,left=2.5cm,right=2cm,top=2cm,bottom=2cm}
+\usepackage{fontspec}
+\setmonofont{Consolas}
+\xdefinecolor{mycolora}{RGB}{35,122,177}
+\xdefinecolor{mycolorb}{rgb}{0.95,0.89,0.82}
+\xdefinecolor{mycolorc}{rgb}{0.92,0.86,0.79}
+\lstset{
+    frame = single,
+    language = C++,
+    numbers = left,
+    numberstyle = \tiny,
+    basicstyle = \ttfamily\small,
+    identifierstyle=\color{brown!80!black!100},
+    keywordstyle = \color{purple},
+    morekeywords = {*,define,*,include...},
+    showspaces = false,
+    showstringspaces = false,
+    showtabs = false,
+    stringstyle = \color{purple},
+    tabsize = 4,
+    commentstyle = \color{gray},
+    showstringspaces = false,
+}
+
+\begin{document}
+
+\setlength{\parindent}{0pt}
+
+\tableofcontents
+
+\newpage
+
+\include{text/misc}
+
+\newpage
+
+\include{text/dp}
+
+\newpage
+
+\include{text/ds}
+
+\newpage
+
+\include{text/poly}
+
+\newpage
+
+\include{text/algebra}
+
+\newpage
+
+\include{text/comb}
+
+\newpage
+
+\include{text/math}
+
+\newpage
+
+\include{text/graph}
+
+\newpage
+
+\include{text/string}
+
+\newpage
+
+\include{text/geometry}
+
+\end{document}

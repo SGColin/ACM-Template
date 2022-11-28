@@ -1,0 +1,345 @@
+\section{卷积与多项式}
+
+\subsection{FFT}
+
+一个神奇的板子，但是要注意这个板子DFT之后并没有蝴蝶变换。
+
+因此涉及到对点值进行运算时需要注意做蝴蝶变换。
+
+\lstinputlisting{./code/poly/FFT.cpp}
+
+\subsection{分治FFT}
+
+\subsubsection{非自身卷积}
+
+$f_i=\sum_{k=0}^{i-1}f_kg_{i-k}$ ，$f_0$ 已知，给出 $g_{1..n}$ 。（ $k>i$ 同理）
+
+cdq分治，先处理 $[L,mid]$ 的 $f$ ，然后用 $[L,mid]$ 的 $f$ 更新 $[mid+1,R]$ 的 $f$ 。
+
+$p_i=f_{i+L}(0\le i\le mid-L)$ ，$q_i=g_i(1\le i\le R-L)$ 。
+
+$f_i(mid+1\le i\le R)$ 加上 $[x^{i-L}](p*q)(x)$ 。
+
+卡常技巧：虽然我们要做 $mid-L$ 和 $R-L$ 的卷积，但由于我们只需要用到 $(p*q)(x)$ 从 $mid+1-L$ 开始的部分，因此我们可以将FFT长度设成 $R-L$ ，FFT会循环溢出，但是只会溢出 $mid-L$ ，不会影响到 $mid+1-L$ 后面的部分。式子简单时可以用多项式求逆求解，复杂度更低。
+
+\subsubsection{自身卷积}
+
+\vspace{-0.2cm}
+
+$f_i=\sum_{k=1}^{i-1}f_kf_{i-k}(i\ge 2)$ ，$f_0,f_1$ 已知。
+
+还是考虑cdq分治，但是会出现一个问题，在统计 $[L,mid]$ 对 $[mid+1,R]$ 的贡献时，$f_{R-L}$ 可能是未知的 $(R-L>mid)$ 。先只统计 $[L,mid]$ 中的贡献，即 $[L,mid]$ 卷 $[L,mid]$ ，剩下的贡献在后面补上。
+
+当 $R-L<L$ 时，$[1,R-L]$ 的信息和 $[L,mid]$ 没有重叠，并且 $[1,L-1]$ 的 $f$ 已经求出，因此将 $[1,R-L]$ 和 $[L,mid]$ 卷积，加到 $[mid+1,R]$ 上，从而补上没算的权值。
+
+注意 $k\le R-L,i-k\le R-L$ 在 $[L,mid]$ 卷 $[L,mid]$ 均没有出现，因此需要算两次。下面是例子：
+
+\vspace{-0.4cm}
+
+$$
+f_0=1,f_1=2,f_i=(i-1)f_{i-1}+\sum_{k=2}^{i-2}(k-1)f_kf_{i-k}
+$$
+
+\vspace{-0.1cm}
+
+\lstinputlisting{./code/poly/cdqFFT.cpp}
+
+\subsection{Bluestein}
+
+循环卷积：$f_ig_j\to h_{(i+j)\bmod n}$
+
+任意长度DFT：
+
+$$
+F_k=f(w_n^k)=\sum_{i=0}^{n-1}f_iw_n^{ik}
+$$
+$$
+ik={i+k\choose 2}-{i\choose 2}-{k\choose 2}
+$$
+$$
+F_k=w_n^{-{k\choose 2}}\sum_{i=0}^{n-1}f_iw_n^{-{i\choose 2}}\cdot w_n^{i+k\choose 2}
+$$
+
+令 $g_{i}=f_{n-i}w_n^{-{n-i\choose 2}},h_i=w_n^{i\choose 2}$ ，则：
+
+$$
+F_{k}=w_n^{-{k\choose 2}}[x^{n-k}](g*h)(x)
+$$
+
+同理，逆变换时代入 $w_n^{-k}$ ，最后除以 $n$ 。
+
+\subsection{MTT}
+
+$P(x)=A_0(x)+iA_1(x),Q(x)=A_0(x)-iA_1(x)$
+
+点值满足 $Q_i=conj(P_{2t-i})$ ，因此只需要算 $P(x)$ 的点值就可以得到 $Q(x)$ 的点值，从而得到：
+
+$A_0(x)=\frac{P(x)+Q(x)}{2},A_1=\frac{P(x)-Q(x)}{2i}$
+
+然后通过点值 $P=A_0B_0+iA_0B_1,Q=A_1B_0+iA_1B_1$ ，逆变换得到 $A_0B_0,A_0B_1,A_1B_0,A_1B_1$ 。
+
+由于涉及到点值共轭，使用上面的FFT板子时需要注意蝴蝶变换。
+
+\vspace{0.3cm}
+
+\lstinputlisting{./code/poly/MTT.cpp}
+
+\subsection{巨大NTT模数}
+
+取模数为 $29\times2^{57}+1$ ，原根为 $3$ 。可以解决大答案不取模的FFT精度问题。
+
+\subsection{多项式全家桶}
+
+\lstinputlisting{./code/poly/poly.cpp}
+
+\begin{lstlisting}
+use hint
+f(x) -> f(ai):
+	input F[0..n-1],X[1..m]
+	Build(1,m);getv(1,m);
+f(ai) -> f(x):
+	input X[1..n],Y[1..n]
+	Build(1,n);
+	for (int i=0;i<=n;i++) DP[i]=P[1][i];
+	Deri(DP,DP,n,1);
+	F.resize(n);for (int i=0;i<n;i++) F[i]=DP[i];
+	getv(1,n);
+	for (int i=1;i<=n;i++) v[i]=MUL(Y[i],Pow(v[i],MOD-2));
+	F=Lag(1,n);
+\end{lstlisting}
+
+
+\subsection{常系数线性齐次递推}
+
+给出 $f_{0..K-1},a_{1..K}$ ，$f_n=\sum_{i=1}^{K}a_if_{n-i}$ ，求 $f_n$ 。
+
+\lstinputlisting{./code/poly/linear.cpp}
+
+\vspace{-0.5cm}
+
+\subsection{多项式除法求系数}
+
+$G(x)=\frac{U(x)}{D(x)}$ ，$U(x),D(x)$ 是 $m$ 次多项式，求第 $n$ 项系数（ $n$ 很大）。
+\vspace{-0.3cm}
+$$
+\begin{array}{l}
+U(x)=G(x)D(x)\\
+\Rightarrow\forall n>m,\sum_{i+j=n}g_id_j=u_n=0\\
+\Leftrightarrow\forall n>m,\sum_{i=0}^{m}d_ig_{n-i}=0\\
+\Leftrightarrow\forall n>m,d_0g_n+\sum_{i=1}^{m}d_ig_{n-i}=0\\
+\Leftrightarrow\forall n>m,g_n=\sum_{i=1}^{m}\frac{-d_i}{d_0}g_{n-i}\\
+\end{array}
+$$
+
+\vspace{-0.3cm}
+
+先用多项式求逆求出 $[0,m]$ 的系数，然后常系数线性齐次递推。
+
+\lstinputlisting{./code/poly/polydivnth.cpp}
+
+\vspace{-0.5cm}
+
+\subsection{多项式复杂度优化}
+
+1. 树上背包，可以利用链分治优化，轻链分治NTT，重链分治矩乘NTT。
+
+2. 给出 $A_i(x),B_i(x)$ ，求 $\sum_{i=1}^{n}val_i\prod_{j=1}^{i-1}A_j(x)\prod_{j=i+1}^{n}B_j(x)$ ，可以利用分治矩乘NTT：
+
+	\vspace{-0.4cm}
+
+   $$
+   \begin{bmatrix}F_{i-1,0}(x)&F_{i-1,1}(x)\end{bmatrix}\begin{bmatrix}A_i(x)&val_i\\0&B_i(x)\end{bmatrix}=\begin{bmatrix}F_{i,0}(x)&F_{i,1}(x)\end{bmatrix}
+   $$
+
+   \vspace{-0.3cm}
+
+3. 给出 $\{a_n\}$ ，求 $F(x)=\sum_{i=0}^{t}(\sum_{j=1}^{n}a_j^i)x^i$ ，即每个 $k$ 次幂之和：
+
+	\vspace{-0.4cm}
+
+	$$
+	\begin{array}{c}
+	\displaystyle
+	f_i(x)=\sum_{k=0}^{t}a_i^kx^k={1\over 1-a_ix},F(x)=\sum_{i=1}^{n}f_i(x)\\
+
+	\displaystyle
+	g_i(x)=-[\ln(1-a_ix)]'={a_i\over 1-a_ix},f_i(x)=xg_i(x)+1\\
+	
+	\displaystyle
+	F(x)=n-x\sum_{i=1}^{n}[\ln(1-a_ix)]'=n-x\{{\ln[\prod_{i=1}^{n}(1-a_ix)]}\}'
+	\end{array}
+	$$
+
+	\vspace{-0.2cm}
+
+	因此，$\sum_{i=1}^{n}P(a_ix)=\sum_{i=1}^{n}\sum_j p_ja_i^jx^j=\sum_j p_j(\sum_{i=1}^{n}a_i^j)x^j$ ，可以求出 $F(x)$ 后得出。
+   
+	\vspace{0.1cm}
+
+   同理，$\prod_{i=1}^{n}P(a_ix)=\exp[\sum_{i=1}^{n}(\ln P)(a_ix)]$ 也可以得出。
+
+\subsection{一些凑多项式的技巧}
+
+1. $g_j=(j+1)f_{j+1}$ : $G(x)=F'(x)$
+
+\vspace{0.3cm}
+
+2. $F_i(x)=F_{i-1}'(x)+A(x)F_{i-1}(x)$ 
+
+\setlength{\parindent}{12pt}
+   
+   令 $\displaystyle G'(x)=A(x),G(x)=\int A(x)dx,P_i(x)=e^{G(x)}F_i(x)$
+   
+   $\displaystyle P_i'(x)=e^{G(x)}[F_i'(x)+A(x)F_i(x)]=e^{G(x)}F_{i+1}(x)=P_{i+1}(x)$
+   
+   $P_k(x)=P_0^{(k)}(x)$ ，$\displaystyle F_k(x)=\frac{P_k(x)}{e^{G(x)}}$
+
+
+\setlength{\parindent}{0pt}
+
+\vspace{0.3cm}
+
+
+3. $f_ig_jw^{ij}\to h_{i+j}$ : $\displaystyle{f_{i}\over w^{i\choose 2}}{g_j\over w^{j\choose 2}}\to{h_{i+j}\over w^{i+j\choose 2}}$
+
+
+\vspace{0.1cm}
+
+
+4. $\displaystyle f_{i,j}=\sum_{k=0}^{j}a^kf_{i-1,k}\cdot g_{j-k}$
+
+\setlength{\parindent}{12pt}
+
+   $F_n(x)=F_{n-1}(ax)G(x)=F_0(a^nx)\prod_{i=0}^{n-1}G(a^ix)$
+   
+   如果 $F_0(x)=1$（常数同理），则 $F_n(x)=\prod_{i=0}^{n-1}G(a^ix)$ ，可以分治：
+   
+   (1) $n$ 偶数：$\displaystyle F_n(x)=F_{n\over2}(x)F_{n\over2}(a^{n\over2}x)$
+   
+   (2) $n$ 奇数：$\displaystyle F_n(x)=F_{n\over 2}(x)F_{n\over2}(a^{n\over2}x)G(a^{n-1}x)$
+
+\setlength{\parindent}{0pt}
+
+
+\subsection{伯努利数}
+
+$$
+B_i=i!\cdot [x^i](\sum_{i=0}^{+\infty}{x^i\over(i+1)!})^{-1}
+$$
+$$
+\sum_{i=0}^{n-1}i^K={1\over K+1}\sum_{i=0}^{K}{K+1\choose i}B_in^{K+1-i}
+$$
+
+\subsection{单位根反演}
+
+可用于求多项式（可推广至矩阵等形式）$f(x)$ 所有 $k$ 倍数位置上的系数之和。
+
+模意义下单位根用原根代替，即 $g_n=g^{MOD-1\over n},g_n^n=g^{MOD-1}=1$ 。
+
+$$
+\begin{array}{c}
+\displaystyle
+{1\over k}\sum_{i=0}^{k-1}\omega_{k}^{ni}=[k\mid n]\\
+\displaystyle
+f(x)=\sum_{i}a_ix^i\\
+\displaystyle
+\sum_{k\mid i}a_i=\sum_{i}a_i[k\mid i]={1\over k}\sum_{i}a_i\sum_{j=0}^{k-1}\omega_{k}^{ij}={1\over k}\sum_{j=0}^{k-1}\sum_{i}a_i(\omega_{k}^{j})^i={1\over k}\sum_{j=0}^{k-1}f(\omega_{k}^{j})
+\end{array}
+$$
+
+\subsubsection{扩展形式}
+
+$$
+\sum_{i\bmod k=r}a_i=\sum_{k|i-r}a_i={1\over k}\sum_{j=0}^{k-1}{f(\omega_k^j)\over\omega_k^{jr}}
+$$
+
+原理：$f(x)$ 向左平移 $r$ 个，即 $\displaystyle f(x)\over x^r$ 。
+
+\newpage
+
+
+\subsection{拉格朗日插值}
+
+用 $n$ 个点 $(x_i,y_i)$ 求出 $n-1$ 次多项式 $f(x)=\sum_{i=0}^{n-1}a_ix^i$ 。
+
+$$
+f(x)=\sum_{i=1}^{n}y_i\prod_{j\not=i}{x-x_j\over x_i-x_j}
+$$
+
+令 $A(k)=\prod_{i=1}^{n}(k-x_i),w_i=\prod_{j\not=i}(x_i-x_j)$ ，则 $\displaystyle f(x)=A(k)\sum_{i=1}^{n}{y_i\over (k-x_i)w_i}$ 。
+
+支持 $O(n)$ 动态加点（维护 $w_i$ ），$O(n)$ 查询 $f(k)$ 。
+
+\subsubsection{求k次幂前缀和}
+
+易知 $f(n,k)=\sum_{i=1}^{n}i^k$ 是 $k+1$ 次多项式，需要 $k+2$ 个点插值。
+
+$$
+\begin{array}{l}
+\displaystyle
+x_i=i,y_i=\sum_{j=1}^{i}j^k\\
+\displaystyle
+f(n,k)=\sum_{i=1}^{k+2}y_i\prod_{j\not=i}{n-x_j\over x_i-x_j}=\sum_{i=1}^{k+2}y_i\prod_{j\not=i}{n-i\over i-j}\\
+\displaystyle
+pre_i=\prod_{j=1}^{i}n-i,suf_i=\sum_{j=i}^{k+2}n-i\\
+\displaystyle
+f(n,k)=\sum_{i=1}^{k+2}y_i{pre_{i-1}\cdot suf_{i+1}\over (i-1)!\cdot (-1)^{k+2-i}(k+2-i)!}
+\end{array}
+$$
+
+\lstinputlisting{./code/poly/lagrange.cpp}
+
+\newpage
+
+
+\subsection{FWT}
+
+\lstinputlisting{./code/poly/FWT.cpp}
+
+\subsection{分治FWT}
+
+$f_i=\sum_{j\oplus k=i(j>i)}f_jp_k$ ，$f_n$ 已知，给出 $p$ 。（ $j<i$ 同理）
+
+当分治到 $[L,R]$ ，对应二进制位为 $d$ 的时候，不难发现 $[L,mid]$ 第 $d$ 位是 $0$ ，$[mid+1,R]$ 第 $d$ 位是 $1$ ，且 $d$ 更高位相同。同时，由于 $d$ 更高位相同，所以 $p(k)$ 的 $k$ 中 $d$ 的更高位一定是 $0$ ，而 $d$ 位一定是 $1$ 。因此只需要考虑 $d$ 低位的 $2^d$ 个数即可。
+
+\lstinputlisting{./code/poly/cdqFWT.cpp}
+
+
+\newpage
+
+\subsection{FMT}
+
+并集卷积：$h_s=\sum_{A\cup B=s}f_Ag_B$
+
+$$
+\hat{f}_s=\sum_{t\subseteq s}f_t
+$$
+$$
+\hat{h}_s=\sum_{t\subseteq s}h_t=\sum_{t\subseteq s}\sum_{A\cup B=t}f_Ag_B=\sum_{A}\sum_{B}[A\cup B\subseteq s]f_Ag_B=\sum_{A\subseteq s}f_A\sum_{B\subseteq s}g_B=\hat{f}_s\hat{g}_s
+$$
+
+交集卷积：$h_s=\sum_{A\cap B=s}f_Ag_B$
+
+$$
+\hat{f}_s=\sum_{t\supseteq s}f_t
+$$
+$$
+\hat{h}_s=\sum_{t\supseteq s}h_t=\sum_{t\supseteq s}\sum_{A\cap B=t}f_Ag_B=\sum_{A}\sum_{B}[A\cap B\supseteq s]f_Ag_B=\sum_{A\supseteq s}f_A\sum_{B\supseteq s}g_B=\hat{f}_s\hat{g}_s
+$$
+
+快速莫比乌斯变换就是高维前缀和，逆变换就是把加号改为减号（实现容斥过程）。
+
+\lstinputlisting{./code/poly/FMT.cpp}
+
+
+\subsection{子集卷积}
+
+子集卷积：$h_s=\sum_A\sum_B[A\cup B=s][A\cap B=\emptyset]f_Ag_B$
+
+等价于 $h_s=\sum_A\sum_B[A\cup B=s][|A|+|B|=|s|]f_Ag_B$
+
+因此加上一维 $i$ 表示集合大小，然后 $h_{i,s}=\sum_{j=0}^{i}\sum_{A\cup B=s}f_{j,A}g_{i-j,B}$
+
+可以用FMT实现。
+
+\lstinputlisting{./code/poly/subFMT.cpp}

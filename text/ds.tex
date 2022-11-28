@@ -1,0 +1,167 @@
+\section{数据结构}
+
+
+\subsection{线段树}
+
+\subsubsection{求上升序列}
+
+初始 $val=-INF$ ，遍历 $\{a_n\}$ ，如果 $a_i\ge val$ ，更新 $val$ 为 $a_i$ ，问更新次数。
+
+定义 $Find(p,k)$ 表示在 $p$ 节点前 $val=k$ 得到的 $val$ 变大的次数。
+
+如果 $k>MAX_{ls_p}$ ，可以直接查询 $Find(rs_p,k)$ 。否则查询 $Find(ls_p,k)+Find(rs_p,MAX_{ls_p})$ 。
+
+$Find(rs_p,MAX_{ls_p})$ 是一个固定值，记录下来之后每次就只会查询一边了。
+
+\lstinputlisting{./code/ds/incseq.cpp}
+
+\vspace{-0.5cm}
+
+\subsubsection{线段树上二分}
+
+\vspace{-0.2cm}
+
+\lstinputlisting{./code/ds/segtrbinary.cpp}
+
+\subsubsection{分裂合并}
+
+\lstinputlisting{./code/ds/segtrmergesplit.cpp}
+
+\vspace{-0.3cm}
+
+\subsubsection{维护平方和以及历史平方和}
+
+记 $len$ 表示区间长度，$sum$ 表示区间和，$val$ 表示区间平方和，$pre$ 表示到目前为止的前缀区间平方和，然后我们考虑区间 $+k$ 操作：
+$x^2\to(x+k)^2=x^2+2kx+k^2$
+
+\vspace{-0.4cm}
+
+$$
+\begin{aligned}
+len&=len'\\
+sum&=sum'+k\cdot len\\
+val&=val'+2k\cdot sum'+k^2\cdot len\\
+pre&=pre'+val'+2k\cdot sum'+k^2\cdot len\\
+\end{aligned}
+$$
+
+\vspace{-0.2cm}
+
+如果仅记录数值 $tag$ 我们不难发现没有办法进行标记合并，观察上面的式子发现这是一次线性变换，因此我们可以用矩阵来表示：
+\vspace{-0.8cm}
+$$
+\begin{bmatrix}len'&sum'&val'&pre'\end{bmatrix}\begin{bmatrix}1&k&k^2&k^2\\0&1&2k&2k\\0&0&1&1\\0&0&0&1\end{bmatrix}=\begin{bmatrix}len&sum&val&pre\end{bmatrix}
+$$
+
+\vspace{-0.2cm}
+
+所以我们可以将这个矩阵记为 $tag$ ，这样就能够标记合并了。
+
+\newpage
+
+这样常数很大，由于这个转移矩阵是上三角的，因此矩阵乘法时我们只需要枚举上三角，常数小很多。
+
+实现时需要注意，为了对齐时间（求 $pre$ ），不仅需要对 $[L,R]$ 进行 $+k$ 操作，还需要对 $[1,L-1],[R+1,n]$ 进行 $+0$ 操作。
+
+可把 $len$ 定义改为 $si$ 表示区间中存在点的个数，从而解决某些问题。
+
+\lstinputlisting{./code/ds/segtrsqrsum.cpp}
+
+\subsubsection{李超线段树}
+
+对于每个线段树节点，记录“覆盖最广线段” $(k,b)$ （顾名思义就是作为最高线段的区间最长的线段，不难发现询问 $x=k$ 的答案一定在包含 $k$ 的节点的“覆盖最广线段”中）。然后对于一个节点 $old$ ，当有新的线段 $new$ 出现的时候，我们需要修改标记：
+
+交点在左边的时候，说明 $new$ 是“覆盖最广线段”，先把 $old$ 当做新的线段去修改左边，然后将 $old$ 修改为 $new$ 。
+
+交点在右边的时候，说明 $old$ 是“覆盖最广线段”，把 $new$ 当做新的线段去修改右边。
+
+\lstinputlisting{./code/ds/lichaosegtr.cpp}
+
+\newpage
+
+\subsubsection{主席树求mex以及所有子区间mex的mex}
+
+开 $n$ 个权值主席树，第 $i$ 棵树记录 $1\sim i$ 中 $x$ 最后一次出现的位置 $pos_x$ 。询问 $[L,R]$ 中的 $mex$ 时，在第 $R$ 棵树中查询，如果左儿子最小的 $pos<L$ ，就说明左儿子中有数没有出现，因此往左儿子查找，否则往右儿子查找。
+
+对于 $x$ ，我们以 $a_i=x$ 的点为分割点，把数组分成好多块，如果任意一个块的 $mex$ 等于 $x$ ，就说明 $x$ 合法。
+
+最后求所有合法 $x$ 的 $mex$ 就行了。
+
+（示例代码中mex定义为最小正整数，定义为自然数时需要更改权值线段树边界）
+
+\lstinputlisting{./code/ds/chairsegtrmex.cpp}
+
+\newpage
+
+
+\vspace{-0.1cm}
+
+\subsection{LCT}
+
+\subsubsection{正常版}
+
+\lstinputlisting{./code/ds/LCT.cpp}
+
+\vspace{-0.5cm}
+
+\subsubsection{缩边双版}
+
+\lstinputlisting{./code/ds/exLCT.cpp}
+
+\subsubsection{维护子树信息}
+
+LCT实链上的信息可以方便维护，所以我们关注虚边：虚边只在Access和Link的时候改变。那么我们只需要记录两个信息 $si[x][0],si[x][1]$ 表示虚边节点数以及虚边节点数加上Splay中子树节点数，则 $si[x][1]=si[L[x]][1]+si[R[x]][1]+si[x][0]+1$ 。然后Access和Link的时候顺便维护一下 $si[x][0]$ 就行了。注意Link的时候一定要让被更新节点成为根，否则无法更新信息（将引起大量信息改动）。
+
+\vspace{0.2cm}
+
+树合并，维护重心：维护出子树信息之后，根据重心的性质，新的树的重心在原来两棵树重心的路径上，将这条路径取出之后在Splay上二分，每次看左右两边子树大小是否 $\le {si\over 2}$ ，如果满足则是重心。每次往节点多的那边走。
+
+\lstinputlisting{./code/ds/subLCT.cpp}
+
+\vspace{-0.3cm}
+
+\subsubsection{维护置换群}
+
+给出置换 $p_i$ ，每次置换执行 $a_i=a_{p_i}$ 。环断链，LCT维护每个置换群的头尾。支持交换 $p_x,p_y$ 。
+
+\lstinputlisting{./code/ds/circleLCT.cpp}
+
+\subsection{Splay维护区间}
+
+\lstinputlisting{./code/ds/Splay.cpp}
+
+\vspace{-0.4cm}
+
+\subsection{KDT}
+
+\vspace{-0.3cm}
+
+各种估价函数看Claris板子。
+
+\lstinputlisting{./code/ds/KDT.cpp}
+
+\subsection{猫树}
+
+定义 $\displaystyle A_{i,j}=\prod_{k=\lfloor{i\over 2^j}\rfloor2^j}^{i}a_k,B_{i,j}=\prod_{k=i}^{\lceil{i\over 2^j}\rceil2^j-1}a_k$ ，可以 $O(n\log_2n)$ 处理。
+
+然后询问区间 $[L,R]$ ，如果 $L=R$ 那么就是 $a_L$ ，否则我们需要找到一个 $k$ 使得 $[L,R]$ 内只存在一个 $2^k$ 的倍数，这样的话就可以直接 $B_{L,k}\cdot A_{R,k}$ 得出结果。
+
+找规律可知 $highbit(L\ xor\ R)$ 就是一个合法的 $k$ 。
+
+\lstinputlisting{./code/ds/cattree.cpp}
+
+\subsection{ODT}
+
+用set维护相同信息的线段。若数据含有Assign并且随机，则块数是 $O(\log\log n)$ 的。
+
+区间操作时暴力遍历 $[L,R]$ 中所有线段。
+
+\lstinputlisting{./code/ds/ODT.cpp}
+
+\newpage
+
+\subsection{随机堆}
+
+\lstinputlisting{./code/ds/randomheap.cpp}
+
+

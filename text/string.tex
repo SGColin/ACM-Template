@@ -1,0 +1,199 @@
+\section{字符串}
+
+\subsection{Trie}
+
+\subsection*{倍增技巧}
+
+如果从上往下一直跳某个字符，每个节点需要对于每个字符都开倍增数组，是不可接受的。如果我们记录 $who_{x,ch}$ 表示节点 $x$ 往下一直跳 $ch$ 字符最深能到哪里，就可以通过从下往上跳规避掉这个问题。
+
+\subsection*{一种复杂度正确的暴力做法} 
+
+Trie可以对于每个节点记录 $O(size)$ 大小的节点信息。
+
+每次插入一个数，只会让串长个节点的 $si$ 增加，也就是说，元素个数总和为 $O(\sum len)$ 。
+
+
+\subsection{Manacher}
+
+\lstinputlisting{./code/string/manacher.cpp}
+
+
+
+\subsection{AC自动机}
+
+
+
+\lstinputlisting{./code/string/acam.cpp}
+
+
+
+\subsection{Z 函数}
+
+
+
+z[i] 是从 i 开始的后缀与整个串最长公共前缀的长度。
+
+\begin{lstlisting}
+int l = 0, r = 0;
+for (int i = 2; i <= n; ++i) {
+    if (i <= r) z[i] = min(z[i - l + 1], r - i + 1);
+    while (i + z[i] <= n && t[z[i] + 1] == t[i + z[i]]) ++z[i];
+    if (i + z[i] - 1 > r) {l = i; r = i + z[i] - 1;}  
+}
+\end{lstlisting}
+
+\newpage
+
+\subsection{Lyndon分解}
+
+$S$ 是Lyndon串当且仅当 $S$ 本身是所有后缀中的最小串。$S$ 是Lyndon串可以推出 $S$ 是所有循环表示中字典序最小的。各种性质与推论：
+
+1. $A,B$ 都是Lyndon串且 $A<B$ ，则 $A+B$ 也是Lyndon串，因为 $B>A+B$ 。
+
+2. 如果 $S=A+B$ 是Lyndon串，则 $B>S>A$ 。
+
+3. $S$ 可以唯一划分成 $A_1A_2\cdots A_m$ ， $A_i$ 均为Lyndon串，且 $A_i\ge A_{i+1}$ ，划分方法即Lyndon分解。
+
+4. 若Lyndon串 $S=A+c+B$ ，则 $A+d$ 是Lyndon串（其中 $c,d$ 为字符，且 $d>c$ ）。
+
+5. Lyndon串没有Border，所以Lyndon串也没有周期。
+
+\textbf{Duval算法}
+
+维护三个位置 $i,j,k$ ，$S[1,i-1]$ 已经分解完毕。
+
+现在 $S[i,k-1]=A^{t}+B$ ，其中 $A$ 是Lyndon串，$A^t$ 是多个 $A$ 接一起。
+
+$B$ 是 $A$ 的可空前缀，$j=k-|A|$ 表示 $S_k$ 在 $A$ 中的对应位置，接下来考虑加上 $k$ 这个位置：
+
+1. $S_k=S_j$ ，则 $A$ 仍是周期，$j,k$ 均往后移动。
+
+2. $S_k>S_j$ ，由性质3 $B+k$ 是Lyndon串且 $A<B+k$ ，前面全部合并，新的 $A$ 更新为 $S[i,k]$ 。
+
+3. $S_k<S_j$ ，则 $A>B+k$ ，所有的 $A$ 都已经确认分解完毕，将 $i$ 移动到 $B$ 的开头。
+
+\begin{lstlisting}
+for (int i=1;i<=n;){
+	int j=i,k=j+1;
+	for (;k<=n && s[k]>=s[j];k++) s[k]==s[j]?j++:j=i;
+	for (;i<=j;i+=k-j) L[++m]=i,R[m]=i+(k-j)-1;
+}
+\end{lstlisting}
+
+\textbf{最小表示法}
+
+把串再接一遍，最后一个 $L_i\le n$ 的Lyndon串就是最小的循环串。
+
+这样求出的是最大位置，如果要最小位置，对于每次的循环串只取第一个 $i$ 即可。
+
+\begin{lstlisting}
+for (int i=1;i<=n;){
+	int j=i,k=j+1;
+	for (;k<=n && s[k]>=s[j];k++) s[k]==s[j]?j++:j=i;
+	for (;i<=j;i+=k-j) if (i<=(n>>1)) pos=i;
+}
+\end{lstlisting}
+
+\textbf{前缀的最小后缀}
+
+对于一个前缀，Lyndon分解之后，最小后缀就是最后一个Lyndon串。
+
+\begin{lstlisting}
+for (int i=1;i<=n;){
+	int j=i,k=j+1; ans[i]=i;
+	for (;k<=n && s[k]>=s[j];k++) 
+		if (s[k]==s[j]) ans[k]=ans[j]+k-j,j++; else ans[k]=i,j=i;
+	for (;i<=j;i+=k-j);
+}
+\end{lstlisting}
+
+\textbf{前缀的最大后缀}
+
+字符集翻转后对于前缀进行Lyndon分解，如果最大后缀不是最后一个Lyndon串，则一定是将这个Lyndon串作为前缀的串。
+
+\begin{lstlisting}
+for (int i=1;i<=n;){
+	int j=i,k=j+1; if (!ans[i]) ans[i]=i;
+	for (;k<=n && s[k]<=s[j];k++){if (!ans[k]) ans[k]=i; s[k]==s[j]?j++:j=i;}
+	for (;i<=j;i+=k-j);
+}
+\end{lstlisting}
+
+\newpage
+
+\subsection{后缀数组}
+
+\subsubsection{倍增}
+
+\lstinputlisting{./code/string/SA.cpp}
+
+\subsubsection{SA-IS}
+
+\lstinputlisting{./code/string/SAIS.cpp}
+
+\newpage
+
+\subsection{（广义）后缀自动机}
+
+\subsubsection{静态}
+
+\lstinputlisting{./code/string/SAM.cpp}
+
+
+\subsubsection{动态(LCT维护parent树)}
+
+\lstinputlisting{./code/string/SAMLCT.cpp}
+
+\subsection{回文自动机}
+
+\subsubsection{基础}
+
+\lstinputlisting{./code/string/PAM.cpp}
+
+\vspace{-0.2cm}
+
+\subsubsection{前端插入 与 记忆化}
+
+\lstinputlisting{./code/string/exPAM.cpp}
+
+\subsubsection{Palindrome Series}
+
+在PAM上额外维护以下信息：
+
+1. $dif_x=len_x-len_{fail_x}$ ，即 $x$ 与 $fail_x$ 最长Border的差，也就是所在等差数列的公差。
+
+2. $anc_x$ 表示 $x$ 往上遇到的第一个 $dif_p\not=dif_{fail_p}$ 的 $p$ 的父亲，即所在等差数列的顶点的父亲。
+
+3. $sum_x$ 表示 $[x,anc_x)$ 路径上的当前信息（包含 $x$ ，不包含 $anc_x$ ）。
+
+Palindrome Series 结论：
+
+1. 一个串的长度在 $[2^k,2^{k+1})$ 范围内的Border长度构成等差数列（Border Series）。
+
+2. 字符串 $T$ 是回文串 $S$ 的一个回文后缀，当且仅当 $T$ 是 $S$ 的Border。
+
+3. 字符串 $S$ 存在回文Border $T$ ，且 $|T|\ge{|S|\over 2}$ ，则 $S$ 是回文串。
+
+4. 如果 $dif_x>{len_x\over 2}$ ，则 $anc_x=fail_x$ 。
+
+5. 如果 $dif_x=dif_{fail_x}$ ，则 $len_{fail_x}\ge{len_x\over 2}$ 。
+
+6. 按照字符串前缀插入，则更新信息时，需要用到的 $sum_{fail}$ 一定已经被更新过了。
+
+7. $len_{anc_x}\le{len_x\over 2}$ ，$x$ 沿着 $anc_x$ 只会跳 $\log_2n$ 次。
+
+Palindrome Series 储存信息：
+$$
+\begin{aligned}
+f_i&=\sum\{f_j|S[j+1,i]\text{ is Palindrome}\}\\
+sum_x&=\sum\{f_{i-len_x},f_{i-len_{fail_x}},\cdots,f_{i-len_t}\},fail_t=anc_x\\
+sum_{fail_x}&=\sum\{f_{j-len_{fail_x}},\cdots,f_{j-len_t}\},fail_t=anc_x\\
+j&=i-dif_x,len_x=len_{fail_x}+dif_x\Rightarrow i-len_x=j-len_{fail_x}\\
+sum_x&=sum_{fail_x}+f_{i-len_t},fail_t=anc_x
+\end{aligned}
+$$
+
+适用于枚举回文后缀统计信息的题。
+
+\lstinputlisting{./code/string/PAMPS.cpp}
+

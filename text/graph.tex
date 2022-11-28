@@ -1,0 +1,570 @@
+\section{树论}
+
+\subsection{Prufer序列}
+
+\subsubsection*{编码}
+
+找到编号最小的度为 $1$ 的节点，删除该点及连接该点的边，将与该点相邻的点加入序列。
+
+重复删除/加入，直到剩下两个节点，最后的序列就是Prufer编码（长度为 $n-2$ ）。
+
+\subsubsection*{解码}
+
+记录一个集合 $S$ ，$S$ 刚开始是全集。
+
+令 $x$ 是 $S$ 中在当前Prufer编码中没出现的最小编号，将 $x$ 与序列第一项连边，删除第一项以及 $x$ 。
+
+重复连边/删除，直到序列为空，此时 $S$ 中还有两个节点，进行连边。
+
+\subsubsection*{性质}
+
+如果一个节点的度数为 $D$ ，那么该节点将会在Prufer编码中出现 $D-1$ 次。
+
+\subsection{树链合并}
+
+在线可以树剖+打覆盖标记线段树两个 $\log$ 。下面讲离线。
+
+树上给 $n$ 条到根的链，每条链将路径上点标记，求有几个标记点。
+
+将 $pos$ 按入栈序排序，把 $pos_j$ 到根路径上的点都 $+1$ ，把 $LCA(pos_{j-1},pos_j)$ 到根路径上的点都 $-1$ 。
+
+多次树链合并，用差分+树状数组就可以单点查询。
+
+\lstinputlisting{./code/graph/treechainmerge.cpp}
+
+\subsection{直径合并}
+
+两棵树合并的时候，新树直径的两个端点只会在两棵树直径的四个端点中产生。
+
+\subsection{虚树}
+
+\lstinputlisting{./code/graph/VirtualTree.cpp}
+
+\subsection{树重心的性质}
+
+1. 以重心为根，所有的子树的大小都不超过整个树大小的一半。
+
+2. 一棵树最多只有两个重心。
+
+3. 树中所有点到某个点的距离和中，到重心的距离和是最小的，如果有多个重心，他们的距离和一样。
+
+4. 把两棵树通过某一点相连得到一颗新的树，新的树的重心必然在连接原来两棵树重心的路径上，
+
+\hspace{0.3cm} 且这条路径上的点的最大子树在左右两个相邻的点上。
+
+5. 一棵树添加或者删除一个节点，树的重心最多只移动一条边的位置。
+
+\subsection{点分治}
+
+模板：求树上距离为 $d$ 的点对数 $sum_d$ 。
+
+\lstinputlisting{./code/graph/pointdandcFFT.cpp}
+
+\subsection{点分树}
+
+将点分治DFS的顺序建成一棵新树，新树高是 $\log_2n$ 的。假设 $x$ 节点在点分树上子树大小为 $size_x$ ，则对所有 $x$ 都可以记录 $O(size_x)$ 的信息（vector，线段树动态开点等），从而支持暴力信息修改。
+
+\vspace{0.1cm}
+
+点分树中通常会记录 $A_x$ 表示 $x$ 点分树子树中，与 $x$ 的原树信息。以及 $B_x$ 表示 $x$ 点分树子树中，与点分树父亲 $fa_x$ 的原树信息。以便进行容斥（和点分治同理）。
+
+
+\vspace{0.1cm}
+
+点分树中各种子树信息、距离信息基本和原树无关，如 $x$ 到 $fa_x$ 的距离不一定小于 $x$ 到 $fa_{fa_x}$ 的距离。
+
+\vspace{0.2cm}
+
+模板：求 $x$ 附近距离小于等于 $K$ 的点的权值和，带单点修改。
+
+
+\vspace{0.1cm}
+
+解法：维护 $A_x$ 表示 $x$ 点分树子树中，到 $x$ 距离的权值线段树。$B_x$ 表示 $x$ 点分树子树中，到 $fa_x$ 距离的权值线段树。首先查询 $A_x$ 线段树中距离 $[0,K]$ 的权值，然后暴力枚举 $x$ 的点分树祖先 $y$ ，查询 $A_{fa_y}$ 中 $[0,K-dis(x,fa_y)]$ 权值减去 $B_y$ 中 $[0,K-dis(x,fa_y)]$ 权值。修改也是暴力枚举 $x$ 的点分树祖先，修改 $A_y$ 和 $B_y$ 。
+
+\lstinputlisting{./code/graph/pointdandctree.cpp}
+
+\subsection{树链剖分}
+
+\subsubsection{重链剖分}
+
+求 $k$ 级祖先：跳到 $k$ 级祖先所在长链，然后通过深度和DFS序确定 $k$ 级祖先。
+
+\subsubsection{长链剖分}
+
+性质：$x$ 的 $k$ 级祖先所在长链长度一定 $\ge k$（否则显然有更长的链）。
+
+\vspace{0.1cm}
+
+求 $k$ 级祖先：倍增预处理出 $2^i$ 级祖先。先跳到 $2^{\lfloor\log_2k\rfloor}$ 级祖先所在长链的链顶 $y$ ，$y$ 所在长链长度大于等于 $2^{\lfloor\log_2k\rfloor}$ ，因此 $y$ 沿着长链往下或者往上 $len_y$ 个就能找到 $k$ 级祖先，对于每个链顶可以预处理这 $2len_y$ 个节点。
+
+\vspace{0.2cm}
+
+有关深度的DP：类似 $f_{i,j}$ 表示 $i$ 子树中与 $i$ 距离为 $j$ ，距离为 $d-j$ 等DP。
+
+长链继承信息，短链暴力合并，复杂度 $O(n)$ 。
+
+\vspace{0.1cm}
+
+贪心：选 $k$ 个叶子到根的路径，求覆盖的边权和的最大值。
+
+带权长链剖分之后，显然分成了若干个不相交的，到叶子的路径，选前 $k$ 大即可。
+
+\lstinputlisting{./code/graph/lsd.cpp}
+
+\subsection{链分治}
+
+\subsubsection{重链分治}
+
+将根节点所在重链视为第一层，第一层点连出去的轻链一定是另一个重链的顶点，作为第二层重链。
+
+以此类推，由于轻儿子 $size$ 至少减半，因此这样分层只有 $\log_2n$ 层。
+
+常用于处理子树DP的优化，例如动态最大独立集，独立集背包。
+
+先求出轻链的信息，挂在重链节点上，然后对重链进行分治等方法快速合并信息。
+
+\lstinputlisting{./code/graph/hlddandc.cpp}
+
+\subsubsection{长链分治}
+
+同重链分治分层方式，由于上层比下层至少长 $1$ ，因此只有 $2\sqrt n$ 层。
+
+问题：每个节点给出多项式 $a_ix+b_i$ ，求所有叶子到根多项式乘积的和。
+
+每个节点记录长链上多项式，以及拐到短链之后的多项式的和。
+
+类似重链分治，先求出短链的多项式，加到长链上，然后对长链进行分治NTT，得到长链多项式，以及长链拐出去的多项式之和。
+
+\newpage
+
+\subsection{DSU on Tree}
+
+按子树 size 轻重链剖分，然后使用某个数据结构统计每个点的子树信息：
+
+1. 先让轻儿子统计子树信息，并撤销对数据结构的影响；
+
+2. 如果有重儿子，统计重儿子子树信息，保留对数据结构的影响（不撤销）；
+
+3. 向数据结构中添加轻儿子子树信息和当前点信息，统计当前点信息。
+
+\vspace{0.2cm}
+
+复杂度分析：每个点只会在到根路径上遇到轻边时被添加 / 撤销，由轻重连剖分结论，每个点到根的路径上至多 $\log n$ 条轻边。所以总复杂度是  $\mathcal O(n \log n )$ ，由于明显跑不满所以常数会很小。
+
+\vspace{0.2cm}
+
+如果需要多次运行 DSU on Tree，可以把所有轻儿子的子树点集预处理出来，省掉递归的常数。
+
+\lstinputlisting{./code/graph/dsu.cpp}
+
+\newpage
+
+\subsection{仙人掌}
+
+\subsubsection{建图}
+
+DFS树：在找到返祖边 $u\to x$ 时，建立一个方点，将 $x$ 连向方点，然后从 $u$ 暴力向上跳，将方点连向途中的点，并且记录环的总距离。求最短路：圆方边的边权是点到祖先点的最小距离（环上有两个方向），用环的总距离以及DFS树上的距离就可以算出。
+
+询问 $x,y$ 时，在圆方树上求出 $x,y$ 的 $lca$ ，然后讨论：
+
+1. $lca$ 是方点，先将 $x,y$ 跳到 $lca$ 的前一个节点 $fx,fy$ ，$x,y$ 走到 $fx,fy$ 之后再求环上的最小距离
+
+2. $lca$ 是圆点，那么答案就是 $x,y$ 在圆方树上的距离
+
+\lstinputlisting{./code/graph/Cactus.cpp}
+
+\newpage
+
+\subsubsection{最大独立集}
+
+建出圆方树，定义 $f_{i,0/1}$ 表示 $i$ 点是否选择的最大独立集，并且对于方点，将 $f_{i,0/1}$ 定义为与方点 $i$ 的顶点相邻的节点是否选择的最大独立集。
+
+那么圆点就正常进行最大独立集DP，而方点需要进行进一步DP。
+
+由于DFS树建圆方树时是按照深度顺序建边的，因此对于方点，按照加边顺序获取出所有儿子即为环上的顺序。
+
+定义 $F_{i,0/1,0/1}$ 表示前 $i$ 个节点中，第一个节点是否选择，且第 $i$ 个节点是否选择的最大独立集。
+
+最后 $\max\{f_{1,0},f_{1,1}\}$ 就是答案。
+
+\lstinputlisting{./code/graph/CactusDP.cpp}
+
+\newpage
+
+\section{图论}
+
+\subsection{差分约束系统}
+
+$a_y-a_x\le b$ 转化为 $x\to y$ 边长为 $b$ 的边，然后刷最短路，如果从 $S$ 开始，则 $dis_i-S$ 都是最大的（最短路顶到限制）。
+
+同理 $a_y-a_x\ge b$ 转化为 $x\to y$ 边长为 $b$ 的边，刷最长路，如果从 $S$ 开始，则 $dis_i-S$ 都是最小的。
+
+\vspace{-0.2cm}
+
+\subsection{K短路}
+
+每个点的代价函数为 $f(x)+h(x)$ ，其中 $f(x)$ 为 $S$ 到 $x$ 距离，$h(x)$ 为 $x$ 到 $T$ 距离（完美估价函数）。
+
+使用A*，优先队列存 $f(x)+h(x)$ 最小的 $x$ ，每一次 $x$ 抵达 $T$ 就说明是比上一次劣的最优最短路。
+
+
+\vspace{-0.2cm}
+
+\subsection{二分图}
+
+\subsubsection{生成树个数}
+
+左 $n$ 个点，右 $m$ 个点的完全二分图，生成树个数为 $m^{n-1}\cdot n^{m-1}$ 。
+
+\vspace{-0.2cm}
+
+\subsubsection{霍尔定理}
+
+二分图 $X,Y$ 存在完美匹配等价于：
+
+对于 $X$ 的任意子集 $S$ ，定义 $M(S)$ 表示 $S$ 连向的 $Y$ 的点集，均满足 $|S|\le |M(S)|$ 。
+
+\vspace{-0.2cm}
+
+\subsubsection{稳定婚姻}
+
+有 $n$ 对CP，和 $m$ 对前男女友关系。一对CP解散之后双方可能会和前男女友旧情复燃，导致很多CP都解散。问第 $i$ 对CP解散之后还能否使得所有人都找到新CP。
+
+如果第 $i$ 对CP除了直接相连的边之外还能找到另外的增广路，说明就可以CP重组。那么把CP边建成 $(x,y)$ ，而前男女友关系建成 $(y,x)$ ，有多条增广路其实就是有SCC，Tarjan就好了。
+
+不能双向边刷边双，这样可能会把前男女友与CP搞混。
+
+\vspace{-0.2cm}
+
+\subsubsection{König 定理}
+
+二分图最大匹配大小 = 最小点覆盖大小。
+
+构造最小点覆盖：假设此前求最大匹配是每次从左侧开始尝试增广，那么增广结束之后，图上没有增广路了。接下来，从左侧每一个未匹配点开始走交错路（匹配边，未匹配边间隔放置），经过的点都打上标记，复杂度 $\mathcal{O}(m)$。最小点覆盖就是\textbf{所有左侧未标记点和右侧标记点}。
+
+任何图最大独立集和最小匹配为对偶问题（答案互补）。
+
+\vspace{-0.2cm}
+
+\subsubsection{Dilworth 定理}
+
+对于偏序关系，最长反链（最大不可比较集）大小 = 最小链（可比较集）覆盖大小（链数）。
+
+对偶定理成立：最小反链覆盖大小 = 最长链大小。
+
+\vspace{0.2cm}
+
+求最小链覆盖：先将偏序的 DAG 传递闭包，然后问题变成求解最小不可重路径覆盖。只需要将每个点拆成出点和入点，然后对于原图的边连 $u_{出}\to v_{入}$ ，答案即 $|V|-$ 最大匹配。
+
+\vspace{0.2cm}
+
+求最长反链：按上述构造二分图并求最大独立集，如果一个点的出入点都在其中，将其加入最长反链。
+
+\subsubsection{Hopcroft-Karp}
+
+Dinic 在二分图上的特殊化，求最大匹配复杂度 $\mathcal{O}(m\sqrt n)$ ，实际很难跑满，常数非常小。
+
+使用时记得设置左右点数 $nl$ 和 $nr$ ，以及增广路长度上限 $inf$ 。
+
+\newpage
+
+\lstinputlisting{./code/graph/hopcroft_karp.cpp}
+
+\newpage
+
+\subsection{强连通分量}
+
+\subsubsection{Kosaraju's Algorithm}
+
+\noindent 
+DFS1 : DFS \textbf{原图}记录后序 post order ，post number 最大的点一定在反图的某个汇中。
+
+\noindent 
+DFS2 : 按 DFS1 中 post order 的\textbf{逆序} DFS \textbf{反图}，每次找到一个反图的汇 SCC ，从小到大编号。
+
+\lstinputlisting{./code/graph/scc_kosaraju.cpp}
+
+\subsubsection{Tarjan's SCC Algorithm}
+
+\noindent 
+$low[u]$ : 节点 $u$ 能到达的，且能走回来的最小的 $idx$ （强制在栈中）。
+
+\noindent 
+在\textbf{反图}上求 SCC 并缩点，则编号 $bl[u]$ 同原图拓扑序\footnote{证明：考虑原图中两个强连通分量 $S_1$ 和 $S_2$ ，若 $S_1$ 中某个点有一条指向 $S_2$ 中某个点的边，讨论反图中 $S_1$ 和 $S_2$ 的 DFS 顺序即可证明}，即：若原图中 $u\to v$ ，则 $bl[u] \le bl[v]$ 。
+
+\lstinputlisting{./code/graph/scc_tarjan.cpp}
+
+\newpage
+
+\subsubsection{缩点（去重边）}
+
+任何有向图都是其强连通分量（ SCC ）的有向无环图（ DAG ）。
+
+按上述代码编号，则编号 $bl[u]$ 从小到大即原图拓扑序：若原图中 $u\to v$ ，则 $bl[u] \le bl[v]$ 。
+
+\lstinputlisting{./code/graph/scc_shrink.cpp}
+
+\vspace{-0.4cm}
+
+\subsubsection{构造强连通图方法}
+
+首先，收缩 SCC. 假设有 $s$ 个源 (入度为 $0$ 的点) $v_0, \ldots, v_{s-1}$ 和 $t$ 个汇（出度为 0 的点) $w_0, \ldots, w_{t-1}$.
+
+不失一般性，假设 $s \leq t$. 我们之后可以证明， $v_0, \ldots, v_{s-1}$ 和 $w_0, \ldots, w_{t-1}$ 可以重新排列，使得存在一个 $1 \leq p \leq s$ ，满足以下三个条件：
+
+1. 对于 $i \in[0, p), v_i \rightsquigarrow w_i$.
+
+2. 对于 $i \in[p, s)$, 存在 $j \in[0, p), v_i \rightsquigarrow w_j$.
+
+3. 对于 $j \in[p, t)$, 存在 $i \in[0, p), v_i \rightsquigarrow w_j$.
+
+其中， $u \rightsquigarrow v$ 代表存在一条从 $u$ 到 $v$ 的\textbf{路径}。
+
+现在先假设满足上述性质的 $p$ 存在。连下列 $t$ 条边:
+
+1. 对于 $i \in[0, p)$ ，连 $w_i \rightarrow v_{(i+1) \bmod p}$. 这样可以把 $v_0, \ldots, v_{p-1}, w_0, \ldots, w_{p-1}$ 变成一个环。
+
+2. 对于 $i \in[p, s)$ ，连 $w_i \rightarrow v_i$. 因为后两个性质，这样可以把 $v_i$ 和 $w_i$ 加入前 $p$ 对点组成的环。
+
+3. 对于 $i \in[s, t)$ ， 连 $w_i \rightarrow v_0$. 因为最后一个性质，这样可以把 $w_i$ 加入环。
+
+下面证明如何构造出一组满足条件的排列和对应的 $p$.
+
+我们考虑收缩完 $\mathrm{SCC}$ 的图，建立一个超级源 $S$ ，向 $v_0, \ldots, v_{s-1}$ 连边. 建立一个超级汇 $T$ ，从 $w_0, \ldots, w_{t-1}$ 连边。
+
+接下来，从 $S$ 到 $T$ 跑 Dinic 算法的\textbf{一次迭代}，换言之，求一个阻塞流。
+
+假设这个阻塞流大小是 $f$, 分别是从 $a_0 \rightsquigarrow b_0, \ldots, a_{f-1} \rightsquigarrow b_{f-1}$. 那么我们令 $p=f$. 那么第一个条件已经满足了。我们同时可以注意到，对于一条阻塞的边 $p \rightarrow q$. 那么存在一个阻塞的源点到 $q$, 从 $p$ 也可以到达一个阻塞的汇点。
+
+对于一个非阻塞的源点，它肯定能到达一条阻塞的边，从而可以到达一个阻塞的汇点。非阻塞的汇点情况也是一样。于是就满足了后两个条件。
+
+当然需要额外注意的是孤立的点，但是我们可以强行把这个点拆成两个点，转化为前面的问题。
+
+\newpage
+
+\subsection{2-SAT}
+
+\subsubsection{建图}
+
+$n$ 个节点，每个节点非 $0$ 即 $1$ ，$i_0$ 表示取 $0$ ，$i_1$ 表示取 $1$ 。
+
+选了 $i_x$ 必须选 $j_y$ ：$i_x\to j_y,j_{1-y}\to i_{1-x}$ 。
+
+选了 $i_x$ 不能选 $j_y$ ：$i_x\to j_{1-y},j_{y}\to i_{1-x}$ 。
+
+$i$ 必须为 $x$ ：$i_x\to i_{1-x}$ 。
+
+\lstinputlisting{./code/graph/2-SAT.cpp}
+
+\vspace{-0.4cm}
+
+\subsubsection{前后缀优化建图}
+
+\vspace{-0.2cm}
+
+$n$ 个组，第 $i$ 组 $K_i$ 个点，每个组只能选一个。
+
+对于单组，每个前缀新加一个点 $pre_i$ ，表示前 $i$ 个点是否选了：
+
+1. $pre_{i-1}$ 选了必须选 $pre_{i}$ ，$pre_i$ 没选不能选 $pre_{i-1}$
+
+2. $i$ 选了必须选 $pre_i$ ，$pre_i$ 没选不能选 $i$
+
+3. $i$ 选了不能选 $pre_{i-1}$ ，$pre_{i-1}$ 选了不能选 $i$
+
+\newpage
+
+\subsection{圆方树（点双）}
+
+\lstinputlisting{./code/graph/circlesquaretree.cpp}
+
+\vspace{-0.6cm}
+
+\subsection{带花树}
+
+求解一般无向图的最大匹配，复杂度 $O(n^3+nm)$ ，稀疏图跑得飞快。
+
+\lstinputlisting{./code/graph/blossomtree.cpp}
+
+\newpage
+
+\subsection{三元环}
+
+无向图，度数小的节点连向度数大的节点（度数相同比编号），然后暴力枚举。
+
+复杂度 $O(m\sqrt m)$ ，三元环最多 $O(m\sqrt m)$ 个。
+
+\lstinputlisting{./code/graph/threecircle.cpp}
+
+\subsection{四元环}
+
+无向图，度数小的节点连向度数大的节点，枚举 $u$ 双向边连向的节点 $v$ ，枚举 $v$ 单向边连向的节点 $z$ ，如果 $u$ 度数小于 $z$ 则统计 $z$ 之前出现次数，并累加 $z$ 出现次数（ $z$ 是度数最大点，避免计数重复）。
+
+复杂度 $O(m\sqrt m)$ ，四元环可能很多。
+
+\lstinputlisting{./code/graph/fourcircle.cpp}
+
+\newpage
+
+
+\subsection{一般图最小割}
+
+$n$ 个点，$m$ 条边的无向图，问最小的边权和使得删掉这些边之后把图分成不连通的两部分。
+
+复杂度 $O(n^3+nm)$ ，如果把找最大值改成堆就可以做到 $O(n^2+nm\log_2m)$ 。
+
+\lstinputlisting{./code/graph/SW.cpp}
+
+\newpage
+
+\section{网络流}
+
+\subsection{最大流}
+
+\lstinputlisting{./code/graph/Dinic.cpp}
+
+\vspace{-0.4cm}
+
+\subsection{费用流}
+
+\subsubsection{最小费用最大流}
+
+\lstinputlisting{./code/graph/EKSpfa.cpp}
+
+\subsubsection{最大费用可行流}
+
+刷费用流的过程中，如果 $S$ 到 $T$ 增广路的费用 $\le 0$ ，即可停止网络流过程，得到最大费用可行流。
+
+\subsubsection{负圈最小费用最大流}
+
+边权 $w\ge 0$ 时，建 $x\to y$ 边权为 $w$ 的边。
+
+边权 $w<0$ 时，建 $x\to y$ 边权为 $w$ ，上下界均为容量的边（实际表现为不用建），表示强制满流，并把费用计入答案。然后建 $y\to x$ 边权为 $-w$ 的边，用来退流。
+
+然后刷 $S$ 到 $T$ 上下界最小费用最大流。
+
+注意：这种费用流存在一种操作为把一个不经过 $S$ 和 $T$ 的环整体加流。
+
+\lstinputlisting{./code/graph/circleEKSpfa.cpp}
+
+\subsection{上下界网络流}
+
+\subsubsection{无源汇上下界可行流}
+
+先让所有边的流量都等于下界，然后再加上一些附加流，使得所有边流量守恒。
+
+假设现在所有边的流量已经等于下界了。我们对于一个点 $i$ ，记录 $num[i]=$ $i$ 点流入量 $-$ $i$ 点流出量，那么如果：
+
+1. $num[i]=0$ ，说明 $i$ 点是流量守恒的，不需要进行处理。
+
+2. $num[i]>0$ ，说明 $i$ 点入 $>$ 出，连一条附加源 $SS\to i$ 的容量为 $num[i]$ 的边。
+
+3. $num[i]<0$ ，说明 $i$ 点出 $>$ 入，连一条 $i\to$ 附加汇 $TT$ 的容量为 $-num[i]$ 的边。
+
+如果存在一种可行流使得 $SS\to TT$ 满流，那么就说明原网络存在可行流。
+
+原网络中每条边的流量是下界+流量（附加流）。
+
+\subsubsection{有源汇上下界可行流}
+
+连一条 $T\to S$ 的容量为 $∞$ 的边，变回无源汇上下界可行流。
+
+可行流的流量是 $T\to S$ 这条边的流量。
+
+\subsubsection{有源汇上下界最大流/最小流}
+
+先求出一个有源汇上下界可行流，然后刷 $S\to T$ 的最大流。
+
+在刷最大流之前把多余的边也就是与 $SS$ , $TT$ 相连的边以及 $T\to S$ 的边“干掉”（程序实现时使其满载即可）。
+
+最小流即刷 $T\to S$ 的最大流。
+
+上下界费用流把Dinic换成EK+Spfa即可。
+
+\lstinputlisting{./code/graph/limitDinic.cpp}
+
+\subsection{最小割}
+
+\subsubsection{切糕模型}
+
+有一块 $X\times Y\times Z$ 的切糕，每个点 $(x,y,z)$ 都有不和谐值 $v(x,y,z)$ 。现在要切这块切糕，为每个直线 $(x,y)$ 选出一个点 $z$ ，一种切法的不和谐值为选出点的不和谐值之和，为了平整还需要满足两条相邻的直线选出的点距离不超过 $D$ 。求最小不和谐值。
+
+如果没有距离限制，我们可以把每个 $(x,y)$ 都从 $S$ 到 $T$ 串起来，像这样：$S \to 1 \to 2 \to 3 \to ... \to T$
+
+将 $z-1\to z$ 的容量设置为 $v(x,y,z)$ ，然后求最小割就是最优解。
+
+但是有限制，我们可以用容量为INF的边实现“屏蔽”效果，对于网络中的点 $(x,y,z)$ ，在 $(x,y,z-1)\to (x',y',z-1-D)$ 和 $(x',y',z+D)\to (x,y,z)$ 之间连容量为INF的边。
+
+这样就会形成一个 $S\to (x,y,z-1)\to (x',y',z-1-D)\to (x',y',z+D)\to (x,y,z)\to T$ 的“通路”，从而阻止其他边被选。 
+
+\subsubsection{占领模型}
+
+$n\times m$ 的网格，有两种方法占领一个格子：1.花费 $c_{i,j}$ 。2.该格子上下左右的格子已经被占领。
+
+占领一个格子之后有 $b_{i,j}$ 的收益，求收益减去花费的最大值。
+
+先假装所有点都占领了，明显不合法，所以对一个点要么买下来要么把周围的买下来，或抛弃收益。
+
+建边：把 $x$ 拆为 $x_{in}$ 和 $x_{out}$ ，连 $x_{in}\to x_{out}:b_x$ 。对于相邻的节点 $y$ ：
+
+$S\to x_{in}:c_x,x_{in}\to y_{in}:INF,x_{out}\to y_{out}:INF,y_{out}\to T:c_y$
+
+为避免成环，将网格黑白染色。
+
+\subsubsection{最大权闭合图}
+
+给出一张带点权（有负权）的有向图，你可以选出一些点，如果这些点中任意一个点连接到的点均在选出的点中，则称这张图是闭合图，得到的价值是选出的点的点权之和，求最大权闭合图。
+
+如果 $x$ 的点权 $w_x>0$ ，就建 $(S,x,w_x)$ 的边，否则建 $(x,T,-w_x)$ 的边，然后这张图中的边 $(u,v)$ 就建 $(u,v,+\infty)$ ，答案：
+$$
+(\sum_{w_x>0}w_x)-MinCut(S,T)
+$$
+经典模型：无向图，对于正权边 $(x,y)$ ，如果 $x$ 和 $y$（负权）选了，就可以获得这条边的贡献，求最大贡献。把边也当成点，选了 $(x,y)$ 就必须选 $x$ 和 $y$ ，求最大权闭合图即可。
+
+\subsubsection{最大密度子图}
+
+无向图，点权 $p_x$ ，边权 $w_e(w_e\ge 0)$ 。选出一些点 $V'$ ，求最大密度子图（不允许不选）：
+$$
+{\sum_{x\in V'}p_x+\sum_{e\in E'}w_e\over|V'|},E'=\{(u,v)|u\in V',v\in V',(u,v)\in E\}
+$$
+
+01分数规划，二分答案 $mid$ ，得到：
+$$
+\sum_{e\in E'}w_e-\sum_{x\in V'}(mid-p_x)\ge 0\\
+\sum_{e\in E'}W_e-\sum_{x\in V'}P_x\ge 0
+$$
+只要是形如 $W_e,P_x$ 的式子都可以用以下方法处理：
+
+建 $S\to i:U$ ，$x\to y:W_e$ ，$i\to T:U+2P_i-d_i$ ，其中 $d_i$ 为与 $i$ 相连的所有边的 $W_e$ 之和，$U$ 是比所有 $d_i-2P_i$ 都大的数。
+
+求 $S\to T$ 的最小割，上述式子的等价条件为 $Un-MinCut(S,T)>0$（不能 $=0$ ，否则说明没有选点）。
+
+如果强制选 $i$ 点，只需要把 $S\to i$ 容量改成 $INF$ 。
+
+求方案：从 $S$ 开始遍历非满载的边，能遍历到的点说明是被选的点。
+
+\lstinputlisting{./code/graph/densitysubgraph.cpp}
+
+\subsubsection{最小割选边}
+
+给出一张 $n$ 个点 $m$ 条有向边的图，现在要求 $S,T$ 的最小割，问每一条边：1.有没有可能出现在最小割中。2.是否一定出现在最小割中。
+
+先跑出随意一种最小割（最大流），然后在残量网络（没有满流的边）里缩点，结论：
+
+1. 如果 $x\to y$ 没有满流，则一定不在最小割里。
+
+2. $x\to y$ 可能出现：$SCC_x\not=SCC_y$ ；
+
+3. $x\to y$ 一定出现：$SCC_S=SCC_x,SCC_y=SCC_T$ 。
+
+\subsection{神秘的超快网络流/费用流模版}
+
+\lstinputlisting{./code/graph/flow.cpp}
+
+\subsection{Colin 的网络流/费用流模版}
+
+\lstinputlisting{./code/graph/MF_gyx.cpp}
+
+\lstinputlisting{./code/graph/MCMF_gyx.cpp}
+

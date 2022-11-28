@@ -1,0 +1,309 @@
+\section{组合容斥}
+
+\subsection{常用公式}
+
+$2n$ 个元素两两组合的方案数为 $\displaystyle\prod_{i=1}^{n}(2i-1)=(2n-1)!!$ 。
+
+卡特兰数：$\displaystyle f(n)={1\over n+1}{2n\choose n}$ 。
+
+\vspace{0.2cm}
+
+错排：$\displaystyle D(n)=(n-1)[D(n-2)+D(n-1)],D(0)=1,D(1)=0$ 。
+
+\vspace{0.2cm}
+
+Lucas定理：$\displaystyle {x\choose y}={x\bmod p\choose y\bmod p}{\lfloor{x\over p}\rfloor\choose \lfloor{y\over p}\rfloor}$ 。
+
+\subsection{组合背包}
+
+$n$ 个物品，$f_{t,i,j}$ 表示前 $t$ 个物品选 $i$ 个，容量为 $j$ 方案数，给定 $K$ ，需要对每个 $j$ 求：
+$$
+ans_j=\sum_{i=K}^{n}(-1)^{i-K}{i-1\choose K-1}f_{n,i,j}
+$$
+令 $\displaystyle F_{t,j,k}=\sum_{i=k}^{n}(-1)^{i-k}{i-1\choose k-1}f_{t,i,j}$ ，则：
+$$
+\begin{aligned}
+f_{t,i,j}&=f_{t-1,i,j}+f_{t-1,i-1,j-p_t}\\
+{i-1\choose k-1}&={i-2\choose k-2}+{i-2\choose k-1}\\
+F_{t-1,j,k}&=\sum_{i=k}^{n}(-1)^{i-k}{i-1\choose k-1}f_{t-1,i,j}\\
+F_{t-1,j-p_t,k-1}&=\sum_{i=k-1}^{n}(-1)^{i-k+1}{i-1\choose k-2}f_{t-1,i,j-p_t}\\
+&=\sum_{i=k}^{n}(-1)^{i-k}{i-2\choose k-2}f_{t-1,i-1,j-p_t}\\
+F_{t-1,j-p_t,k}&=\sum_{i=k}^{n}(-1)^{i-k}{i-1\choose k-1}f_{t-1,i,j-p_t}\\
+&=\sum_{i=k+1}^{n}(-1)^{i-1-k}{i-2\choose k-1}f_{t-1,i-1,j-p_t}\\
+&=-\sum_{i=k}^{n}(-1)^{i-k}{i-2\choose k-1}f_{t-1,i-1,j-p_t}\\
+F_{t,j,k}&=F_{t-1,j,k}+F_{t-1,j-p_t,k-1}-F_{t-1,j-p_t,k}
+\end{aligned}
+$$
+
+
+\subsection{二项式反演}
+
+$$
+f_n = \sum_{i=0}^n (-1)^i {n \choose i} g_i \Leftrightarrow g_n = \sum_{i=0}^n (-1)^i {n \choose i} f_i
+$$
+$$
+f_n = \sum_{i=0}^n {n \choose i} g_i \Leftrightarrow g_n = \sum_{i=0}^n (-1)^{n-i} {n \choose i} f_i
+$$
+
+证明考虑直接代入。
+
+\subsection{Min-Max容斥}
+
+对于一个集合 $S$ ，定义 $\max(S)$ 为 $S$ 中最大值，$\min(S)$ 为 $S$ 中最小值，设：
+$$
+\max(S)=\sum_{T\subseteq S}f(|T|)\min(T)
+$$
+
+\vspace{-0.3cm}
+
+设 $a_i$ 为 $S$ 中第 $i$ 大的数，则：
+
+\vspace{-0.3cm}
+
+$$
+\max(S)=\sum_{i=0}^{|S|-1}a_{i+1}\sum_{j=0}^{i}f(j+1){i\choose j}=a_1
+$$
+$$
+\sum_{j=0}^{i}f(j+1){i\choose j}=[i=0]
+$$
+$$
+f(i+1)=\sum_{j=0}^{i}(-1)^{i-j}{i\choose j}[j=0]=(-1)^{i},f(i)=(-1)^{i-1}
+$$
+$$
+\max(S)=\sum_{T\subseteq S}(-1)^{|T|-1}\min(T)
+$$
+同理，$\max_{k}(S)$ 为 $S$ 中第 $k$ 大值，则：
+$$
+f(i+1)=\sum_{j=0}^{i}(-1)^{i-j}{i\choose j}[j=k-1]=(-1)^{i-k+1}{i\choose k-1},f(i)=(-1)^{i-k}{i-1\choose k-1}
+$$
+$$
+\max_k(S)=\sum_{T\subseteq S}(-1)^{|T|-k}{|T|-1\choose k-1}\min(T)
+$$
+
+$\min,\max$ 互换也成立（显然对称），期望意义下也成立。
+
+
+\subsection{广义容斥}
+
+求选出恰好 $K$ 个时的方案数（集合答案仅与大小有关时下面的推导才成立）。
+
+设 $ans_S$ 表示选出集合为 $S$ 时的方案数，$ans_i$ 表示选出 $i$ 个的方案数。$a_i$ 表示至少选了 $i$ 个的方案数。
+$$
+ans_K=\sum_{S}f(|S|)a_S=\sum_{S}f(|S|)\sum_{S\subseteq T}ans_{T}=\sum_{T}ans_T\sum_{S\subseteq T}f(|S|)=\sum_{i=0}^{n}ans_i\sum_{j=0}^{i}{i\choose j}f(j)
+$$
+$$
+\sum_{j=0}^{i}{i\choose j}f(j)=[i=K]
+$$
+
+\vspace{-0.4cm}
+
+二项式反演：
+
+\vspace{-0.4cm}
+
+$$
+f(n)=\sum_{i=0}^{n}(-1)^{n-i}{n\choose i}[i=K]=(-1)^{n-K}{n\choose K}
+$$
+$$
+ans_K=\sum_{i=0}^{n}f(i)a_i=\sum_{i=K}^{n}(-1)^{i-K}{i\choose K}a_i
+$$
+
+\subsection{牛顿二项式定理}
+
+$$
+(x+y)^{\alpha}=\sum_{i=0}^{+\infty}{\alpha\choose i}x^iy^{\alpha-i}\ ,\ \ 
+{\alpha\choose i}={\prod_{j=0}^{i-1}(\alpha-j)\over i!}
+$$
+
+其中 $\alpha$ 是实数。
+
+\newpage
+
+\subsection{序列容斥}
+
+从一个位置走到下一个位置有若干种走法（合法或非法）。定义 $f_i$ 表示走了 $i$ 格均合法的方案数，$g_i$ 表示走了 $i$ 格均非法的方案数。特殊的，$g_1$ 也认为非法，$f_0$ 为初值。
+
+先考虑前 $n-1$ 行都合法，则权值为 $f_{n-1}g_1$ ，这样有个问题，就是 $n-1$ 行到 $n$ 行时不一定合法，因此我们强制 $n-1$ 到 $n$ 非法，即减去 $f_{n-2}g_2$ ，但是类似的会发现 $f_{n-2}g_2$ 里包含了 $n-2$ 到 $n-1$ 非法的情况是我们多减的，所以加上 $f_{n-3}g_3$ 。以此类推会发现这是个容斥：
+$$
+f_{n}=\sum_{i=1}^{n}(-1)^{i-1}f_{n-i}g_i=\sum_{i=1}^{n}f_{n-i}(-1)^{i-1}g_{i}
+$$
+$$
+h_{i}=(-1)^{i-1}g_i,f_n=\sum_{i=1}^{n}f_{n-i}h_i
+$$
+即 $f=f*h+f_{0},f={f_0\over 1-h}$ ，如果能求出 $g$ 即可求出 $f$ 。
+
+
+
+\subsection{q-binomial}
+
+$$
+[n]_q = \sum\limits_{i=0}^{n-1} q^i = \lim_{x \rightarrow q} \frac{1-x^n}{1-x}, [ n ] !_q = \prod_{i=1}^n [i]_q, {n \brack m}_q = \frac {[n]!_q} {[m]!_q [n - m]!_q}
+$$
+$$
+{n \brack m}_q = \lim_{x \rightarrow q} \frac{\prod_{1 \le i \le n}\frac{1-x^i}{1-x}}{\prod_{1 \le i \le m}\frac{1-x^m}{1-x}\prod_{1 \le i \le n-m}\frac{1-x^m}{1-x}} \\= \lim_{x \rightarrow q}\frac{\prod_{n-m+1 \le i \le n} (1-x^i)}{\prod_{1 \le i \le m} (1-x^i)}
+$$
+
+\vspace{0.4cm}
+
+\textbf{结论1}：$\displaystyle {n \brack m}_q = {n-1 \brack m-1}_q + q^m {n-1 \brack m}_q=q^{n-m} {n-1 \brack m-1}_q + {n-1 \brack m}_q$
+
+\vspace{0.2cm}
+
+(1) 组合意义：${n \brack m}_q$ 表示 $(0,0)$ 向上向右走到 $(n-m,m)$ 的所有方案中 $q^{count}$ 的和，$count$ 表示路径右下角/左上角点的个数。
+
+(2)说明：考虑坐标变换 $(n,m)\to(n-m,m)$ ，这样式子中就变成了向上向右走，然后考虑 $q^m$ 为每次向右走时下面点的个数，同理 $q^{n-m}$ 为每次向上走时左边点的个数。
+
+
+\vspace{0.4cm}
+
+\textbf{结论2}：$\displaystyle \prod_{i=0}^{n-1} (1+q^iy) = \sum\limits_{i=0}^n q^{\binom{i}{2}} {n \brack i}_q y^i$
+
+\vspace{0.2cm}
+
+(1) 组合意义：${n \brack i}_q$ 表示在长度为 $n$ 的序列里选 $i$ 个位置的所有方案中 $\prod_{j=1}^{i}q^{pre_j}$ 的和，$pre_j$ 表示第 $j$ 个选的位置前面有多少个没有被选。
+
+(2) 说明：式子前面的生成函数表示第 $i$ 个位置选的贡献为 $q^i$ ，$y^i$ 的系数表示选了 $i$ 个位置的贡献乘积和。然后考虑 $q^{i\choose 2}$ ，表示每个选了的位置往前和其他选了的位置的贡献，因此考虑从 $y^i$ 的系数中去掉 $q^{i\choose 2}$ 就是 ${n \brack i}_q$ 的组合意义。
+
+\vspace{0.4cm}
+
+\textbf{结论3}：$\displaystyle {n + m \brack k}_q = \sum\limits_{i=0}^k q^{(n-i)(k-i)} {n \brack i}_q {m \brack k-i}_q$ ，证明考虑结论2组合意义，两边合并。
+
+\textbf{结论4}：$\displaystyle {n + m + 1 \brack n + 1}_q = \sum\limits_{i=0}^m q^i {n + i \brack n}_q$ ，证明 $\displaystyle {n \brack m}_q=q^{n-m} {n-1 \brack m-1}_q + {n-1 \brack m}_q$ 展开 $m$ 次。
+
+\textbf{结论5}：$\displaystyle \frac{1}{\prod_{i=0}^n (1-q^ix)} = \sum\limits_{i \ge 0} x^i {i+n \brack n}_q$
+
+\newpage
+
+\subsection{第一类斯特林数}
+
+第一类斯特林数：$n$ 个数分成 $m$ 个圆排列，且没有空排列的方案数。
+$$
+{n\brack m}=(n-1){n-1\brack m}+{n-1\brack m-1}
+$$
+$$
+x^{\overline{n}}=\prod_{i=0}^{n-1}(x+i)=\sum_{i=0}^{n}{n\brack i}x^i
+$$
+第二个式子：观察递推式可知另一个意义，对于 $[1,n]$ 的每个数都有 $1$ 种方案选和 $i-1$ 种方案不选，求选出 $m$ 个数的方案数，定义上升幂 $x^{\overline{n}}=\prod_{i=0}^{n-1}(x+i)$ ，则 $x^{\overline{n}}$ 第 $m$ 项系数即为 ${n\brack m}$ 。
+
+\subsubsection{求一行}
+
+求 ${n\brack 0},{n\brack 1},\cdots,{n\brack n}$ 。
+$$
+\begin{aligned}
+x^{\overline{n}}&=\prod_{i=0}^{n-1}(x+i)=\sum_{i=0}^{n}{n\brack i}x^i\\
+x^{\overline{2n}}&=x^{\overline{n}}(x+n)^{\overline n}\\
+\end{aligned}
+$$
+$$
+\begin{aligned}
+(x+n)^{\overline n}&=\sum_{i=0}^{n}a_i(x+n)^i\\
+&=\sum_{i=0}^{n}a_i\sum_{j=0}^{i}{i\choose j}x^jn^{i-j}\\
+&=\sum_{i=0}^{n}x^i{1\over i!}\sum_{j=i}^{n}a_jj!{n^{j-i}\over(j-i)!}\\
+\end{aligned}
+$$
+利用倍增求出 $x^{\overline{n}}$ 即可得出。
+
+\lstinputlisting{./code/comb/stirling1row.cpp}
+
+\newpage
+
+\subsubsection{求一列}
+
+求 ${0\brack m},{1\brack m},\cdots,{n\brack m}$ 。
+
+考虑指数型生成函数，令 $\displaystyle F(x)=\sum_{i=1}^{+\infty}(i-1)!{x^i\over i!}$
+
+则 $F(x)$ 的 $\displaystyle [{x^i\over i!}]$ 表示 $i$ 个数分成 $1$ 个圆排列的方案数。
+
+那么 $F(x)^m$ 的 $\displaystyle [{x^i\over i!}]$ 表示 $i$ 个数分成 $m$ 个有顺序的圆排列的方案数。
+
+\vspace{0.2cm}
+
+所以 $\displaystyle {i\brack m}=[{x^i\over i!}]{F(x)^m\over m!}$ ，可以通过多项式快速幂求出（分治，或ln+exp）。
+
+\vspace{0.3cm}
+
+\lstinputlisting{./code/comb/stirling1column.cpp}
+
+\subsection{第二类斯特林数}
+
+第二类斯特林数：$n$ 个不同元素分成 $m$ 个相同集合，且没有空集的方案数。
+$$
+{n\brace m}=m{n-1\brace m}+{n-1\brace m-1}
+$$
+$$
+{n\brace m}={1\over m!}\sum_{i=0}^{m}(-1)^i{m\choose i}(m-i)^n
+$$
+$$
+n^k=\sum_{i=0}^{min\{n,k\}}{n\choose i}{k\brace i}i!
+$$
+第二个式子是个容斥，$i$ 枚举的是空盒子的个数，那么 $n$ 个球可以在其他盒子乱放，但由于第二类斯特林数表示的是相同盒子，所以最后要除以 $m!$ 。
+
+第三个式子左边表示 $k$ 个不同的球放进 $n$ 个不同的盒子的方案数，右边枚举了非空盒子的个数 $i$ ，那么把 $k$ 个球放入这 $i$ 个盒子，由于第二类斯特林数表示的是相同盒子，所以还要乘上 $i!$ 。
+
+\newpage
+
+\subsubsection{求一行}
+
+求 ${n\brace 0},{n\brace 1},\cdots,{n\brace n}$ 。
+$$
+{n\brace m}={1\over m!}\sum_{i=0}^{m}(-1)^i{m\choose i}(m-i)^n=\sum_{i=0}^{m}{(-1)^i\over i!}{(m-i)^n\over (m-i)!}
+$$
+显然是一个卷积。
+
+\lstinputlisting{./code/comb/stirling2row.cpp}
+
+\subsubsection{求一列}
+
+求 ${0\brace m},{1\brace m},\cdots,{n\brace m}$ 。
+
+考虑指数型生成函数，令 $\displaystyle F(x)=\sum_{i=1}^{+\infty}{x^i\over i!}=e^x-1$
+
+则 $F(x)$ 的 $\displaystyle [{x^i\over i!}]$ 表示 $i$ 个不同元素放进 $1$ 个盒子的方案数。
+
+那么 $F(x)^m$ 的 $\displaystyle [{x^i\over i!}]$ 表示 $i$ 个不同元素放进 $m$ 个不同盒子的方案数。
+
+\vspace{0.2cm}
+
+所以 $\displaystyle {i\brace m}=[{x^i\over i!}]{F(x)^m\over m!}$ ，可以通过多项式快速幂求出（分治，或ln+exp）。
+
+\vspace{0.4cm}
+
+\lstinputlisting{./code/comb/stirling2column.cpp}
+
+\newpage
+
+\subsection{斯特林科技}
+
+\subsubsection{上升幂下降幂}
+
+$$
+\begin{aligned}
+x^{\overline{n}} &=\prod_{i=0}^{n-1}(x+i)={x+n-1\choose n}n!\\
+x^{\underline{n}} &=\prod_{i=0}^{n-1}(x-i)={x\choose n}n!\\
+x^{\overline{n}} &=(-1)^{n}(-x)^{\underline{n}},x^{\underline{n}}=(-1)^{n}(-x)^{\overline{n}}\\
+x^{\overline{n}} &=\sum_{i=0}^{n}{n\brack i}x^i,x^{\underline{n}}=\sum_{i=0}^{n}(-1)^{n-i}{n\brack i}x^i\\
+x^n &=\sum_{i=0}^{n}{x\choose i}i!{n\brace i}=\sum_{i=0}^{n}{n\brace i}x^{\underline{i}}=\sum_{i=0}^{n}(-1)^{n-i}{n\brace i}x^{\overline{i}}
+\end{aligned}
+$$
+
+\subsubsection{斯特林反演}
+
+$$
+\begin{aligned}
+f_n &=\sum_{i=0}^{n}{n\brace i}g_i\Leftrightarrow g_n=\sum_{i=0}^{n}(-1)^{n-i}{n\brack i}f_i\\
+f_n &=\sum_{i=0}^{n}{n\brack i}g_i\Leftrightarrow g_n=\sum_{i=0}^{n}(-1)^{n-i}{n\brace i}f_i
+\end{aligned}
+$$
+
+\subsection{贝尔数}
+
+$B_n$ 表示 $n$ 个有标号物品分成若干个非空无标号集合的方案数。
+
+$$
+\begin{aligned}
+B_n &=\sum_{i=0}^{n}{n\brace i}=\sum_{i=0}^{n-1}{n-1\choose i}B_i\\
+{B_n\over(n-1)!} &=\sum_{i=0}^{n-1}{1\over(n-1-i)!}{B_i\over i!}\\
+\hat B(x)e^x &=\sum_{i=0}^{\infty}B_n{x^{n-1}\over(n-1)!}=\hat B'(x),\hat B(x)=\exp(e^x-1)
+\end{aligned}
+$$

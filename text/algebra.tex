@@ -1,0 +1,317 @@
+\section{代数}
+
+
+可以用矩阵乘法处理的代数结构为半环 $(A,+,\cdot)$ ，即满足：
+
+1. $(A,+)$ 为带有单位元 $0$ 的交换幺半群（单位元，结合律，交换律）；
+
+2. $(A,\cdot\ )$ 为带有单位元 $1$ 的幺半群（单位元，结合律）；
+
+3. 乘法对加法同时有左、右分配律；加法单位元 $0$ 抵消乘法。
+
+
+\begin{table}[htbp]
+\begin{tabular}{cccccc}
+ID          & A                                                    & +             & 0            & $\cdot$               & 1  \\ \hline
+1           & $\mathbb{R}                                        $ & $\min       $ & $+\infty   $ & $\max               $ & $-\infty$    \\ 
+2           & $\mathbb{R}                                        $ & $\max       $ & $-\infty   $ & $\min               $ & $+\infty$    \\
+3           & $\mathbb{R}\cup \{-\infty \}                       $ & $\max       $ & $-\infty   $ & ordinary addition $+$ & $0$          \\ 
+4           & $\mathbb{R}\cup \{+\infty \}                       $ & $\min       $ & $+\infty   $ & ordinary addition $+$ & $0$          \\
+5           & $\forall n\in \mathbb{N^+},\ [0,2^n)\cap \mathbb{N}$ & bitwise OR    & $0         $ & bitwise AND           & $2^n-1$      \\ 
+6           & $\forall n\in \mathbb{N^+},\ [0,2^n)\cap \mathbb{N}$ & bitwise AND   & $2^n-1     $ & bitwise OR            & $0$          \\
+7           & $\forall n\in \mathbb{N^+},\ [0,2^n)\cap \mathbb{N}$ & bitwise XOR   & $0         $ & bitwise AND           & $2^n-1$     
+\end{tabular}
+\end{table}
+
+\vspace{-0.3cm}
+
+\lstinputlisting{./code/algebra/basis.cpp}
+
+\newpage
+
+\subsection{行列式}
+
+$$
+\operatorname{det} A \triangleq \sum_{i_1i_2 \cdots i_n}(-1)^{\tau\left(i_1 i_2 \cdots i_n\right)} a_{1,i_1} a_{2,i_2} \cdots a_{n,i_n}
+$$
+
+1. 矩阵转置行列式不变。下述所有对行成立的性质对列都成立。
+
+2. 行倍加行列式不变。行交换行列式符号取反。行倍乘系数可以提到外面（注意 $\text{det}\ kA = k^n\text{det} A$）。
+
+3. 行列式具有分行可加性。 若两行成比例，则行列式值为 $0$ 。
+
+4. 方阵乘法可取行列式：若 $A,B$ 为 $n$ 阶方阵，则 $\text{det}\ AB = \text{det}\ A\ \text{det}\ B$ 。推论 $\operatorname{det} A^{-1}=\displaystyle \frac{1}{\operatorname{det} A}$ 。
+
+\vspace{0.2cm}
+
+4. 行列式可按行展开，展开定理：$
+\sum_{k=1}^n a_{i,k} A_{j,k}=\left\{\begin{array}{cc}
+\text{det}\ A, & (i=j) \\
+0, & (i \neq j)
+\end{array}\right.$
+
+\vspace{0.2cm}
+
+5. 范德蒙德行列式： $
+D_n=\left|\begin{array}{cccc}
+1 & 1 & \cdots & 1 \\
+x_1 & x_2 & \cdots & x_n \\
+x_1^2 & x_2^2 & \cdots & x_n^2 \\
+\vdots & \vdots & & \vdots \\
+x_1^{n-1} & x_2^{n-1} & \cdots & x_n^{n-1}
+\end{array}\right|=\prod_{1 \leq i<j \leq n}\left(x_j-x_i\right)
+$
+
+\vspace{0.2cm}
+
+\vspace{0.2cm}
+
+\lstinputlisting{./code/algebra/det.cpp}
+
+\newpage
+
+\subsection{伴随矩阵}
+
+\vspace{-0.2cm}
+
+$$
+A^* \triangleq\left(\begin{array}{cccc}
+A_{11} & A_{12} & \cdots & A_{1 n} \\
+A_{21} & A_{22} & \cdots & A_{2 n} \\
+\vdots & \vdots & & \vdots \\
+A_{n 1} & A_{n 2} & \cdots & A_{n n}
+\end{array}\right)^T
+$$
+
+\begin{center}
+其中 $A_{i j}$ 是 $A$ 中 $(i, j)$ 元的代数余子式。
+\end{center}
+
+1. $A^* A=A A^*=|A|I$ ，$|A^*| =|A|^{n-1}$ 。 
+
+2. $A$ 可逆时：(a) $A^*=|A|A^{-1}$ ，复杂度 $\mathcal{O}(n^3)$ ；(b) $A^*$ 可逆, 此时 $\left(A^*\right)^{-1}=\displaystyle \frac{A}{|A|}$ 。
+
+3. $
+R\left(A^*\right)=\left\{\begin{array}{ll}
+n, & \text { 若 } R(A)=n \\
+1, & \text { 若 } R(A)=n-1 \\
+0, & \text { 若 } R(A)<n-1
+\end{array}\right.
+$ （设 $A_{m \times n} B_{n \times t}=0$ , 则  $R\left(A_{m \times n}\right)+R\left(B_{n \times t}\right) \leq n$ ）
+
+\subsubsection*{克拉默法则}
+
+设 $A$ 是 $n$ 阶可逆矩阵, $\forall b \in \mathbb{R}^n$, 方程 $A x=b$ 有唯一解：
+
+\vspace{0.2cm}
+
+解为 $x_i=\displaystyle \frac{\operatorname{det} A_i(b)}{\operatorname{det} A}$ ，其中 $A_i(b)$ 表示 $A$ 中第 $i$ 列替换成 $b$ 得到的矩阵。
+
+\vspace{0.2cm}
+
+计算伴随矩阵后可以快速查询代数余子式，复杂度 $\mathcal{O}(n^3 + nq)$。
+
+\subsection{矩阵树定理}
+
+对于图 $G$ ，求 $\sum_{T\in \text{图G的生成树}} \prod_{e\in T} w_e$ 的值。
+
+
+
+无向图生成树：$K_{i, j}= \begin{cases}-\sum_{(i, j, w) \in E} w, & i \neq j \\ \sum_k \sum_{(i, k, w) \in E} w, & i=j\end{cases}$ ，任意余子式都是所有生成树权值的和。
+ 
+有向图外向树 ： $K_{i, j}= \begin{cases}-\sum_{(i, j, w) \in E} w, & i \neq j \\ \sum_k \sum_{(k, i, w) \in E} w, & i=j\end{cases}$ ，余子式 $A_{i,i}$ 是所有以 $i$ 为根外向生成树权值的和。
+
+有向图内向树 ： $K_{i, j}= \begin{cases}-\sum_{(i, j, w) \in E} w, & i \neq j \\ \sum_k \sum_{(i, k, w) \in E} w, & i=j\end{cases}$ ，余子式 $A_{i,i}$ 是所有以 $i$ 为根内向生成树权值的和。
+
+
+即对于主对角线，内向树只考虑出边，外向树只考虑入边。
+
+\subsubsection*{乘积变求和}
+
+对于图 $G$ ，求 $\sum_{T \in \text{图G的生成树}} \sum_{e \in T} w_e$
+
+把边的贡献写成 $w_e x+1$ ，答案就是行列式函数的一次项的系数, 乘法变成了模 $x^2$ 的多项式乘法。
+
+\subsubsection*{BEST 定理}
+
+对于有向图 $G=(V, E)$ ： 记 $d_i$ 为点 $i$ 的出度, $T_u(G)$ 是 $G$ 的以点 $u$ 为根的内向生成树的个数。
+
+则从点 $s$ 出发的欧拉回路数量为:
+$$
+F(s)=T_s(G) \times d_{s} \times \prod_{u \in V}\left(d_u-1\right) !
+$$
+
+整个有向图 $G$ 的欧拉回路数量为：随意指定一点 $s$, $F(G)=T_s(G) \times \prod_{u \in V}\left(d_u-1\right) !$
+
+存在欧拉回路的有向图 $G$ 满足: 对于任意点 $s, T_s(G)$ 相等。
+
+\newpage
+
+\subsection{LGV 引理}
+
+$G$ 是一个有限的带权有向无环图。每个顶点的度是有限的, 不存在有向环 (所以路径数量是有限的）。
+
+起点 $A=\left\{a_1, \cdots, a_n\right\}$, 终点 $B=\left\{b_1, \cdots, b_n\right\}$ 。
+
+每条边 $e$ 有权 $w_e$, 并假定值属于某 交换环。对于一个有向路径 $P$, 定义 $\omega(P)$ 为路径上所有边权的积。
+
+对任意顶点 $a, b$, 定义 $e(a, b)=\sum_{P: a \rightarrow b} \omega(P)$ 。
+
+设矩阵
+$$
+M=\left(\begin{array}{cccc}
+e\left(a_1, b_1\right) & e\left(a_1, b_2\right) & \cdots & e\left(a_1, b_n\right) \\
+e\left(a_2, b_1\right) & e\left(a_2, b_2\right) & \cdots & e\left(a_2, b_n\right) \\
+\vdots & \vdots & \ddots & \vdots \\
+e\left(a_n, b_1\right) & e\left(a_n, b_2\right) & \cdots & e\left(a_n, b_n\right)
+\end{array}\right)
+$$
+
+从 $A$ 到 $B$ 的不相交路径 $P=\left(P_1, P_2, \cdots, P_n\right), P_i$ 表示从 $a_i$ 到 $b_{\sigma(i)}$ 的一条路径, 其中 $\sigma$ 是一个排 列（置换）, 并且满足对任意 $i \neq j, P_i$ 与 $P_j$ 没有公共点。记 $\sigma(P)$ 表示 $P$ 对应的排列。
+
+
+\vspace{0.2cm}
+
+\textbf{定理} $\ M$ \textbf{的行列式是所有从} $A$ \textbf{到} $B$ \textbf{的不相交路径} $P=\left(P_1, \cdots, P_n\right)$ \textbf{的带符号和}。
+
+其中符号指 $\sigma(P)$ 的逆序数的奇偶性： $(-1)^{\text{逆序数}}$ ，记为 $\mathrm{sign}(\sigma(P))$。
+
+\vspace{-0.2cm}
+
+$$
+\operatorname{det}(M)=\sum_{P: A \rightarrow B} \operatorname{sign}(\sigma(P)) \prod_{i=1}^n \omega\left(P_i\right)
+$$
+
+\vspace{-0.5cm}
+
+\subsection{特征值}
+
+设 $A$ 是 $n$ 阶方阵, 若存在数 $\lambda$ 和非零向量 $\xi$, 使得$A \xi=\lambda \xi$ 则称 $\lambda$ 是 $A$ 的特征值。
+
+
+\subsubsection*{对角化}
+
+\vspace{-0.1cm}
+
+设 $A_{n \times n}$ 的互异的特征值为 $\lambda_1, \lambda_2, \cdots, \lambda_s$
+
+则 $A$ 可对角化 $\Leftrightarrow$ 对每一个 $\lambda_i$, 它的几何重数 $=$ 代数重数（特殊情况 $n$ 个特征值），其中：
+
+\hspace{0.4cm} 1. $\lambda_i$ 的代数重数, 指在特征方程中 $\lambda_i$ 的重根数
+
+\hspace{0.4cm} 2. $\lambda_i$ 的几何重数, 指特征空间 $V_{\lambda_i}$ 的维数 $=\operatorname{dim} N u l\left(A-\lambda_i I\right)=n-R\left(A-\lambda_i I\right)$
+
+此时, 可令 
+
+\vspace{-0.6cm}
+
+$$
+\begin{array}{ll}
+P &=\left(\xi_{11}, \xi_{12}, \cdots, \xi_{1 r_1}, \xi_{21}, \xi_{22}, \cdots, \xi_{2 r_2}, \cdots, \xi_{s 1}, \xi_{s 2}, \cdots, \xi_{s r_s}\right)\\
+\Lambda &=\operatorname{diag}(\underbrace{\lambda_1, \lambda_1, \cdots, \lambda_1}_{r_1 \text{个}}, \underbrace{\lambda_2, \lambda_2, \cdots, \lambda_2}_{r_2 \text{个}}, \cdots, \underbrace{\lambda_s, \lambda_s, \cdots, \lambda_s}_{r_s \text{个}})
+\end{array}
+$$
+
+\vspace{-0.2cm}
+
+则 $P^{-1} A P=\Lambda$ ，有多项式 $\varphi(A)=P \varphi(\Lambda) P^{-1} = P \operatorname{diag}(\varphi(\lambda_1),\varphi(\lambda_2),\dots,\varphi(\lambda_n))P^{-1}$
+
+\subsubsection*{特征多项式}
+
+\vspace{-0.1cm}
+
+$A$ 的特征多项式 $f(\lambda) = |A - \lambda I|$ ，全体特征值为 $f(\lambda)$ 的根。 可 $\mathcal{O}(n^4)$ 拉格朗日插值。
+
+因为相似矩阵 $B=PAP^{-1}$ 特征多项式相同，于是考虑通过初等变换来构造 $B$ :
+
+1. 行交换: $E_{i, j} A E_{i, j}^{-1}$ ，互换第 $i, j$ 行、第 $i, j$ 列。
+
+2. 行倍乘: $E_{i}(k) A E_{i}^{-1}(k)$, 第 $i$ 行乘以 $k$, 第 $i$ 列乘以 $\frac{1}{k}$
+
+3. 行倍加： $E_{i, j}(k) A E_{i, j}^{-1}(k)$, 第 $i$ 行加上 $k$ 倍的第 $j$ 行, 第 $j$ 列减去 $k$ 倍的第 $i$ 列。
+
+由于每次对第 $i$ 行的操作都会影响到第 $i$ 列，所以考虑将 $A$ 化简为上海森堡矩阵，分离主元的行列。
+
+\vspace{0.2cm}
+
+令第 $i$ 行到第 $n$ 行, 第 $i$ 列到第 $n$ 列相交形成的矩阵的特征多项式为 $D_{i}(x)$ （令 $D_{n+1}(x)=1$ ）。
+
+则按照第一列展开，如果选择的是第二行，再按照第一行展开可以得到：
+
+\vspace{-0.3cm}
+
+$$
+D_{i}(x)=\left(a_{i, i}-x\right) D_{i+1}(x)+\sum_{j=i+1}^{n} a_{i, j}(-1)^{j-i} D_{j+1}(x) \prod_{k=i+1}^{j} a_{k, k+1}
+$$
+
+\vspace{-0.1cm}
+
+这样直接后往前计算 $D_{i}(x)$, 复杂度也是 $O\left(n^3\right)$ 的。加上前面化简矩阵, 整体的复杂度就是 $O\left(n^3\right)$ 了。
+
+\newpage
+
+\subsection{置换群}
+
+    \subsubsection*{置换}
+
+    $n$ 元集合 $\Omega$ 到它自身的一个一一映射，称为 $\Omega$ 上的一个置换或 $n$ 元置换。
+
+    $\Omega$ 上的置换为，上面为 $1$ 到 $n\ (\alpha_{1}\sim \alpha_{n})$ ，下面是 $n$ 阶排列 $(\alpha_{1j}\sim \alpha_{nj})$，表示$\alpha_{i}$ 由 $\alpha_{ij}$ 取代。
+
+    置换的运算是连接。设置换$A,B\ ,\ A$下元素$i$由$a[i]$取代，则$A×B=C$，其中$c[i]=b[a[i]]$。
+
+    \subsubsection*{置换群}
+
+    若一组置换在连接运算下构成一个群，则称其为置换群。
+
+    单位元：${1,2,3,…,n}$
+
+    $A$ 的逆元 $B$ ：$b[a[i]]=i$
+
+    若 $G$ 有限，则存在最小正整数 $r$ 使得 $A^r=E$，$A^{r-1}$ 为逆元，$r$为置换 $A$ 轮换的最小公倍数。
+
+
+    \subsubsection*{Burnside引理}
+
+    集合 $X$ 在有限群 $G$ 作用下本质不同的元素个数为
+
+    $$
+    |X/G|=\frac{1}{|G|}\sum_{g\in G}|X^g|
+    $$
+
+    其中 $X^g$ 表示集合 $X$ 在 $g$ 作用下的不动点。
+
+    即：一个置换群的等价类数目等于这个置换群中所有置换的不动点数目的平均值。
+
+
+    \subsubsection*{Pólya定理}
+
+    Pólya定理是Burnside引理在染色情况下的一个特例。
+
+    如果两种染色方案，经过变换可以变成相同的，称之为在一个\textbf{轨道}上。
+
+    我们把排列写成若干个轮换的形式，其中轮换的个数叫做\textbf{循环指标}。
+
+    设有限群 $G$ 有 $m$ 个置换，第 $i$ 个置换有 $a_i$ 个循环，现在要将所有的点染成 $c$ 种颜色。
+
+    $$
+    \text{染色后群 $G$ 的等价类数目} L=\frac{\sum_{i=1}^m c^{a_i}}m
+    $$
+
+    不动点要求所有循环的颜色相同，每个循环有 $c$ 种颜色选择，所以不动点数目为 $c^{a_i}$。
+
+    \subsubsection*{一个例题}
+
+	$n$ 个点的环，每个点染 $m$ 种颜色之一，旋转和反转都视为同构，问不同的染色方案数。
+
+    先只考虑旋转，假如旋转 $k$ 个位置，考虑此时循环的长度 $x$ ，是 $kx\equiv 0\pmod{n}$ 的最小正整数解（转了 $x$ 次后回到原处）。
+    $$
+    x=\frac{\text{lcm}(k,n)}{k}=\frac{n}{\gcd(k,n)}\ ,\ \text{因此循环个数为}\frac{n}{\frac{n}{\gcd(k,n)}}=\gcd(k,n)\ ,\ \text{方案数为} m^{\gcd(k,n)}
+    $$
+
+    再考虑翻转，\textbf{对于任意的旋转-翻转-旋转操作都等同于一次翻转操作},因此只需要统计所有本质不同的翻转操作的答案。此时点数的奇偶性不同会导致对称轴产生方式不同。
+
+    若 $n$ 为奇数，则只会产生点-边对称轴，此时个数为 $n$ 个，循环的组数为 $\frac{n}2+1$，方案数为 $nm^{\frac{n}{2}+1}$。
+
+    若 $n$ 为偶数，则会产生点-点对称轴和边-边对称轴两种，各 $\frac{n}2$ 个，其中点-点对称轴循环的组数为 $\frac{n}2+1$，边-边对称轴循环的组数为 $\frac{n}2$,方案数为 $\frac n2(m^{\frac n2}+m^{\frac n2+1})​$。

@@ -1,0 +1,157 @@
+\section{数论}
+
+\subsection{BSGS}
+
+\lstinputlisting{./code/math/BSGS.cpp}
+
+\subsection{CRT}
+
+我们观察两个模方程：$\begin{cases}x\equiv a_1\pmod{m_1}\\x\equiv a_2\pmod{m_2}\end{cases}$ 。
+
+转化：$x=a_1+x_1m_1=a_2+x_2m_2\Leftrightarrow x_2m_2\equiv a_1-a_2\pmod{m1}$ 。
+
+一般题目里都要我们求最小非负整数解，所以我们可以用扩展欧几里得求出最小的 $x_2$ ，从而得出满足两个模方程的最小 $x=a_2+x_2m_2$ ，记为 $x_0$ 。
+
+因为要同时满足两个模方程，所以得出新的模方程：$x\equiv x_0\pmod{[m_1,m_2]}$ 。
+
+不断合并模方程，最后的 $x_0$ 就是答案。
+
+\lstinputlisting{./code/math/CRT.cpp}
+
+\newpage
+
+\subsection{二次剩余}
+
+求解 $x^2\equiv a\pmod{P}$ 。
+
+两边开根 $2\log x=\log a\Leftrightarrow \log x={\log a\over 2}$ 。
+
+求出 $P$ 的原根 $g$ ，BSGS算出 $g^{\log a}\equiv a\pmod{P}$ ，则 $x\equiv g^{\log a\over 2}\pmod{P}$ 。
+
+注意特判 $a=0$ 。
+
+虽然但是，建议直接看Claris的二次剩余板子。
+
+\lstinputlisting{./code/math/sqrtmod.cpp}
+
+\subsection{Pollard-Rho}
+
+\lstinputlisting{./code/math/PR.cpp}
+
+\subsection{莫比乌斯反演}
+
+\subsubsection{因数形式}
+
+$$
+f=g*1,f(n)=\sum_{d|n}g(d) \Longleftrightarrow
+g=f*\mu,g(n)=\sum_{d|n}f(d)\mu({n\over d})
+$$
+
+\subsubsection{倍数形式}
+
+$$
+F(d)=\sum_{d|n}f(n)=\sum_{k=1}^{\infty}f(kd) \Longleftrightarrow
+f(d)=\sum_{d|n}\mu({n\over d})F(n)=\sum_{k=1}^{\infty}\mu(k)F(kd)
+$$
+
+证明：$f(d)=\sum_{i=1}^{\infty}\mu(i)\sum_{j=1}^{\infty}f(ijd)=\sum_{k=1}^{\infty}f(kd)\sum_{i|k}\mu(i)=\sum_{k=1}^{\infty}f(kd)e(k)=f(d)$ 。
+
+\subsection{杜教筛}
+
+$$
+\sum_{i=1}^{n}(f*g)(i)=\sum_{i=1}^{n}\sum_{d|i}f({i\over d})g(d)=\sum_{d=1}^{n}g(d)\sum_{i=1}^{\lfloor{n\over d}\rfloor}f(i)=\sum_{i=1}^{n}g(1)S(\lfloor{n\over i}\rfloor)
+$$
+$$
+S(n)={\sum_{i=1}^{n}(f*g)(i)-\sum_{i=2}^{n}g(i)S(\lfloor{n\over i}\rfloor)\over g(1)}
+$$
+
+莫比乌斯函数 $\mu*1=e$ ：
+$$
+S(n)=1-\sum_{i=2}^{n}S(\lfloor{n\over i}\rfloor)
+$$
+欧拉函数 $\varphi*1=id$ ：
+$$
+S(n)={n(n+1)\over 2}-\sum_{i=2}^{n}S(\lfloor{n\over i}\rfloor)
+$$
+欧拉函数乘上 $i^k,f(i)=i^k\varphi(i)$ ，$(f*id_k)(n)=n^k\sum_{d|n}\varphi(d)=n^{k+1}$ ：
+$$
+S(n)=\sum_{i=1}^{n}i^{k+1}-\sum_{i=2}^{n}i^kS(\lfloor{n\over i}\rfloor)
+$$
+预处理前 $O(n^{2\over 3})$ 可加速。记忆化后，杜教筛外面套除法分块复杂度不变。
+
+\lstinputlisting{./code/math/dusieve.cpp}
+
+\subsection{Min25筛}
+
+已知积性函数 $f(n)$ ，其中 $f(p)$ 形式友好，且 $f(p^k)$ 可以快速计算（ $p$ 是素数），求其前缀和。定义 $h(n)$ 表示把 $n$ 强行当成素数代入 $f(n)$ 中的值，比如 $f(p)=p$ 那么 $h(n)=n$ ，且 $h(n)$ 是完全积性函数。
+
+\vspace{0.2cm}
+
+定义 $g_{i,j}$ 表示 $[1,i]$ 中是素数或者最小质因数 $>p_j$ 的 $h(n)$ 的和，初值 $g_{i,0}=\sum_{i=2}^{i}h(i)$ ，考虑递推：
+
+1. $p_j^2>i$ ：$g_{i,j}=g_{i,j-1}$ ，因为最小质因数 $>p_j$ ，所以 $g_{i,j}=g_{i,j-1}$ 。
+
+2. $p_j^2\le i$ ：$g_{i,j}=g_{i,j-1}-h(p_j)[g_{\lfloor{i\over p_j}\rfloor,j-1}-\sum_{k=1}^{j-1}h(p_k)]$ ，$g_{i,j-1}$ 比 $g_{i,j}$ 多出来一部分即最小质因数为 
+
+\hspace{0.3cm} $p_j$ 的部分，又因为 $h(n)$ 是完全积性函数，所以先把 $h(p_j)$ 提出来，乘上最小质因数 $\ge p_j$ 的部分。
+
+\vspace{0.2cm}
+
+这样就可以得到 $\sum_{i=1}^{n}[i\in P]f(i)$ 即 $g_{n,|P|}$ ，实际只需要开一维数组，且只需要 $2\sqrt n$ 个（除法分块）。
+
+定义 $S(a,b)$ 表示 $[1,a]$ 中最小质因数 $\ge p_b$ 的 $f(n)$ 的和，那么 $\sum_{i=1}^{n}f(i)$ 就是 $S(n,1)+f(1)$ 。
+
+由于我们已经知道了素数的答案，只需要加上合数，枚举合数的最小质因子以及次数，则：
+$$
+S(a,b)=g_a-\sum_{i=1}^{b-1}f(p_i)+\sum_{i=b}\sum_{k=1}S(\lfloor{a\over p_i^k}\rfloor,i+1)f(p_i^k)+f(p_i^{k+1})
+$$
+
+\subsubsection{技巧}
+
+如果 $h(n)$ 不是积性函数，可以考虑拆分等方法，拆成若干个积性函数的和差。
+
+例1：$f(p)=c$ 常数，可以先求出 $f(p)=1$ 的 $g$ 数组，然后全部乘上 $c$ 。
+
+例2：$f(p)=p-1$ ，拆成 $f_1(p)=p,f_2(p)=1$ 。
+
+如果 $f(n)$ 能通过枚举一个素数进行转移，则可能也可以Min25筛（因为Min25求和部分是通过枚举素数实现的）。
+
+例1：$f(n)$ 表示 $n$ 的次大质因子（相同质数记多次），如果没有次大质因子记 $f(p)=0$ 。算 $S(a,b)$ 时，素数贡献均为 $0$ ，只需要考虑合数贡献，合数分为两种：$p_b^kp_c(c>b)$ 和 $p_b^kx$（ $x$ 是合数），因此还是可以枚举 $p_b^k$ 然后计算。
+
+\lstinputlisting{./code/math/min25.cpp}
+
+\newpage
+
+\subsection{线性筛}
+
+假设求积性函数 $f(x)$ 的质数幂 $f\left(p^k\right)$ 复杂度为 $t$ , 则最终复杂度为 $\mathcal{O}\left(n+\frac{n}{\ln n} \times t\right)$ 。
+
+求的过程： $p$ 直接走定义，$p^k$ 利用公式复杂度为 $t$ , 其他合数直接用积性。
+
+\lstinputlisting{./code/math/linear_sieve.cpp}
+
+\subsection{常用卷积恒等式}
+
+  $(1)\ d=1\ast 1$ 
+
+  $(2)\ \sigma_{1}=id\times 1$ 
+
+  $(3)\ id=\varphi \ast 1$ 
+
+  $(4)\ \mu\ast 1=e$
+
+  $(5)\ \mu \ast id=\varphi$
+
+  $(6)\ \sum_{i=1}^n [(i, n) = 1] i = \displaystyle\frac{e(n)+n\varphi(n)}{2}$
+
+\subsection{除法分块}
+
+\subsubsection*{下取整分块}
+
+$x=\lfloor{n\over l}\rfloor,r=\lfloor{n\over x}\rfloor$
+
+\subsubsection*{上取整分块}
+
+$x=\lceil{n\over l}\rceil,r=\lfloor{n-1\over x-1}\rfloor$
+
+注意，当 $x=1$ 时，$r=+\infty$ ，而不是 $r=n$ ，查询信息时需要特别注意。
